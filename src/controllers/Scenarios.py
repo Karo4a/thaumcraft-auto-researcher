@@ -187,7 +187,7 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
                                 pointAspectsMixLeft, pointAspectsMixCreate, pointAspectsMixRight, rectInventory.LT,
                                 rectInventory.RB, rectHexagonsCC,
                                 (rectHexagonsCC.y - rectHexagonsTy) / (THAUM_HEXAGONS_SLOTS_COUNT // 2))
-        beReadyForCreatingTI(UI)
+        chooseThaumVersion(UI)
 
     createNextBackButtonsAndText(
         UI,
@@ -344,6 +344,7 @@ def chooseThaumVersion(UI: OverlayUI):
         UI,
         f"""Выберите версию Thaumcraft.
 От этого будут зависеть рецепты получения аспектов.
+(Самая популярная версия - 4.2.3.5)
 
 Выбери версию:""",
         onSubmit, [],
@@ -453,7 +454,7 @@ def beReadyForCreatingTI(UI: OverlayUI):
 
     createNextBackButtonsAndText(
         UI,
-        f"""Сейчас нейросеть определит имеющиеся аспекты в твоем столе.
+        f"""Сейчас нейросеть определит имеющиеся аспекты в твоем столе, сконфигурированном ранее.
 Не двигай курсором мыши в процессе""",
         startCreatingTI, [],
         chooseThaumVersion, [UI],
