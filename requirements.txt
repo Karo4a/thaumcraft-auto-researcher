@@ -1,0 +1,10 @@
+appdata==2.2.1
+keyboard==0.13.5
+mouse==0.7.1
+numpy==1.24.2
+onnxruntime==1.23.2
+onnxruntime_directml==1.18.0
+Pillow==12.0.0
+PyQt5==5.15.11
+pyqt5_sip==12.17.1
+PyScreeze==0.1.29
