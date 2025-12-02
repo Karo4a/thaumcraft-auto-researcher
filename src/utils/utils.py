@@ -9,7 +9,7 @@ from PIL import Image
 from src.utils.LinkableValue import linkableValueDumpsToJSON
 from src.utils.constants import THAUM_CONTROLS_CONFIG_PATH, THAUM_ASPECT_RECIPES_CONFIG_PATH, THAUM_VERSION_CONFIG_PATH, \
     DELAY_BETWEEN_EVENTS, DELAY_BETWEEN_RENDER
-from utils.constants import THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH
+from src.utils.constants import THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH
 
 
 def distance(x1, y1, x2, y2):
@@ -39,20 +39,20 @@ def saveJSONConfig(fullpath: str, jsonToSave: dict):
         json.dump(jsonToSave, file, indent=4, ensure_ascii=False, default=linkableValueDumpsToJSON)
 
 
-def saveThaumControlsConfig(pointWritingMaterials, pointPapers, rectAspectsListingLT, rectAspectsListingRB,
-                            pointAspectsScrollLeft, pointAspectsScrollRight,
-                            pointAspectsMixLeft, pointAspectsMixCreate, pointAspectsMixRight, rectInventoryLT,
+# def saveThaumControlsConfig(pointWritingMaterials, pointPapers, rectAspectsListingLT, rectAspectsListingRB,
+#                             pointAspectsScrollLeft, pointAspectsScrollRight,
+#                             pointAspectsMixLeft, pointAspectsMixCreate, pointAspectsMixRight, rectInventoryLT,
+#                             rectInventoryRB, rectHexagonsCC, hexagonSlotSizeY):
+def saveThaumControlsConfig(pointWritingMaterials, pointPapers, rectAspectsListingLT, rectAspectsListingRB, rectAspectsListingLT2, rectAspectsListingRB2, # GTNH
+                            rectInventoryLT,
                             rectInventoryRB, rectHexagonsCC, hexagonSlotSizeY):
     saveJSONConfig(THAUM_CONTROLS_CONFIG_PATH, {
         "pointWritingMaterials": {"x": pointWritingMaterials.x, "y": pointWritingMaterials.y},
         "pointPapers": {"x": pointPapers.x, "y": pointPapers.y},
         "rectAspectsListingLT": {"x": rectAspectsListingLT.x, "y": rectAspectsListingLT.y},
         "rectAspectsListingRB": {"x": rectAspectsListingRB.x, "y": rectAspectsListingRB.y},
-        "pointAspectsScrollLeft": {"x": pointAspectsScrollLeft.x, "y": pointAspectsScrollLeft.y},
-        "pointAspectsScrollRight": {"x": pointAspectsScrollRight.x, "y": pointAspectsScrollRight.y},
-        "pointAspectsMixLeft": {"x": pointAspectsMixLeft.x, "y": pointAspectsMixLeft.y},
-        "pointAspectsMixCreate": {"x": pointAspectsMixCreate.x, "y": pointAspectsMixCreate.y},
-        "pointAspectsMixRight": {"x": pointAspectsMixRight.x, "y": pointAspectsMixRight.y},
+        "rectAspectsListingLT2": {"x": rectAspectsListingLT2.x, "y": rectAspectsListingLT2.y}, # GTNH
+        "rectAspectsListingRB2": {"x": rectAspectsListingRB2.x, "y": rectAspectsListingRB2.y}, # GTNH
         "rectInventoryLT": {"x": rectInventoryLT.x, "y": rectInventoryLT.y},
         "rectInventoryRB": {"x": rectInventoryRB.x, "y": rectInventoryRB.y},
         "rectHexagonsCC": {"x": rectHexagonsCC.x, "y": rectHexagonsCC.y},

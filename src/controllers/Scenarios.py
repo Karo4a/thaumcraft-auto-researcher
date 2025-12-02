@@ -9,7 +9,7 @@ from typing import Callable
 from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QColor, QFont
 
-from UI.primitives.Text import Align
+from src.UI.primitives.Text import Align
 from src.UI.OverlayUI import OverlayUI, KeyboardKeys
 from src.UI.primitives import Circle, Image, Line, Point, Rect, Text, UIPrimitive
 from src.UI.primitives.values import DEFAULT_FONT
@@ -19,7 +19,7 @@ from src.logic.LinksGeneration import generateLinkMap
 from src.utils.LinkableValue import LinkableCoord, LinkableValue
 from src.utils.constants import MARGIN, THAUM_ASPECTS_INVENTORY_SLOTS_X, THAUM_ASPECTS_INVENTORY_SLOTS_Y, \
     THAUM_HEXAGONS_SLOTS_COUNT, THAUM_ASPECT_RECIPES_CONFIG_PATH, DELAY_BETWEEN_RENDER, DELAY_BETWEEN_EVENTS, \
-    LINK_GENERATION_MAX_TIME_MS
+    LINK_GENERATION_MAX_TIME_MS, RECT_ASPECTS_NUMBERS
 from src.utils.utils import saveThaumControlsConfig, readJSONConfig, eventsDelay, renderDelay, \
     saveThaumVersionConfig, loadThaumVersionConfig
 
@@ -172,7 +172,7 @@ def configureThaumWindowCoords(UI: OverlayUI):
     )
 
 
-def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
+def confirmThaumWindowSlots(UI : OverlayUI, LTx, LTy, RBx, RBy):
     thaumWindowWidth = RBx - LTx
     thaumWindowHeight = RBy - LTy
     logging.info(
@@ -182,11 +182,17 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
     UI.createExitButton()
 
     def saveControls():
-        saveThaumControlsConfig(pointWritingMaterials, pointPapers, rectAspectsListing.LT, rectAspectsListing.RB,
-                                pointAspectsScrollLeft, pointAspectsScrollRight,
-                                pointAspectsMixLeft, pointAspectsMixCreate, pointAspectsMixRight, rectInventory.LT,
-                                rectInventory.RB, rectHexagonsCC,
+        # saveThaumControlsConfig(pointWritingMaterials, pointPapers, rectAspectsListing.LT, rectAspectsListing.RB,
+        #                         pointAspectsScrollLeft, pointAspectsScrollRight,
+        #                         pointAspectsMixLeft, pointAspectsMixCreate, pointAspectsMixRight, rectInventory.LT,
+        #                         rectInventory.RB, rectHexagonsCC,
+        #                         (rectHexagonsCC.y - rectHexagonsTy) / (THAUM_HEXAGONS_SLOTS_COUNT // 2))
+        # v GTNH v #
+        saveThaumControlsConfig(pointWritingMaterials, pointPapers,
+                                rectAspectsListing.LT, rectAspectsListing.RB, rectAspectsListing2.LT, rectAspectsListing2.RB,
+                                rectInventory.LT, rectInventory.RB, rectHexagonsCC,
                                 (rectHexagonsCC.y - rectHexagonsTy) / (THAUM_HEXAGONS_SLOTS_COUNT // 2))
+        # ^ GTNH ^ #
         chooseThaumVersion(UI)
 
     createNextBackButtonsAndText(
@@ -213,13 +219,20 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
     # Slots
     Ws = thaumWindowWidth / 15
     Hs = thaumWindowHeight / 10
-    topSlotsY = LinkableValue(LTy + Hs * 0.85)
-    pointWritingMaterials = UI.addObject(
-        Point(LTx + Ws * 1, topSlotsY, movable=True, color=QColor('yellow')))  # writing materials
-    pointPapers = UI.addObject(Point(LTx + Ws * 4.5, topSlotsY, movable=True, color=QColor('yellow')))  # scrolls
+    # topSlotsY = LinkableValue(LTy + Hs * 0.85)
+    # pointWritingMaterials = UI.addObject(
+    #     Point(LTx + Ws * 1, topSlotsY, movable=True, color=QColor('yellow')))  # writing materials
+    # pointPapers = UI.addObject(Point(LTx + Ws * 4.5, topSlotsY, movable=True, color=QColor('yellow')))  # scrolls
 
-    rectAspectsLT = LinkableCoord(LTx + Ws * 0.25, LTy + Hs * 2.25)
-    rectAspectsRB = LinkableCoord(LTx + Ws * 5.2, LTy + Hs * 7.25)
+    topSlotsY = LinkableValue(LTy + Hs * 0.7) # GTNH
+    pointWritingMaterials = UI.addObject( # GTNH
+        Point(LTx + Ws * 4.3, topSlotsY, movable=True, color=QColor('yellow')))  # writing materials # GTNH
+    pointPapers = UI.addObject(Point(LTx + Ws * 10.65, topSlotsY, movable=True, color=QColor('yellowgreen')))  # scrolls # GTNH
+
+    # rectAspectsLT = LinkableCoord(LTx + Ws * 0.25, LTy + Hs * 2.25)
+    # rectAspectsRB = LinkableCoord(LTx + Ws * 5.2, LTy + Hs * 7.25)
+    rectAspectsLT = LinkableCoord(LTx + Ws * 0.375, LTy + Hs * 0.375) # GTNH
+    rectAspectsRB = LinkableCoord(LTx + Ws * 3.3, LTy + Hs * 7.2) # GTNH
     UI.addObject(
         Line(rectAspectsLT.x, rectAspectsLT.y, rectAspectsRB.x, rectAspectsRB.y, dashed=True, color=QColor('brown')))
     UI.addObject(
@@ -256,43 +269,95 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
     UI.addObject(Point(rectAspectsRB.x, rectAspectsRB.y, movable=True,
                        onMoveCallback=updateListingRectCoords))  # aspects listing rectangle
 
-    aspectsScrollY = LinkableValue(LTy + Hs * 7.65)
-    pointAspectsScrollLeft = UI.addObject(
-        Point(LTx + Ws * 2, aspectsScrollY, movable=True, color=QColor('lightblue')))  # aspects scroll left
-    pointAspectsScrollRight = UI.addObject(
-        Point(LTx + Ws * 3.5, aspectsScrollY, movable=True, color=QColor('lightblue')))  # aspects scroll right
 
-    aspectsMixY = LinkableValue(LTy + Hs * 9)
-    pointAspectsMixLeft = UI.addObject(
-        Point(LTx + Ws * 1, aspectsMixY, movable=True, color=QColor('pink')))  # aspects mix left
-    pointAspectsMixCreate = UI.addObject(
-        Point(LTx + Ws * 2.75, aspectsMixY, movable=True, color=QColor('pink')))  # aspects mix create
-    pointAspectsMixRight = UI.addObject(
-        Point(LTx + Ws * 4.5, aspectsMixY, movable=True, color=QColor('pink')))  # aspects mix right
+    # v GTNH v #
 
-    rectLT = LinkableCoord(LTx + Ws * 2.55, LTy + Hs * 10.8)
-    rectRB = LinkableCoord(LTx + Ws * 12.4, LTy + Hs * 14)
+    # rectAspectsLT2 = LinkableCoord(LTx + Ws * 0.25, LTy + Hs * 2.25)
+    # rectAspectsRB2 = LinkableCoord(LTx + Ws * 5.2, LTy + Hs * 7.25)
+    rectAspectsLT2 = LinkableCoord(LTx + Ws * 11.75, LTy + Hs * 0.375) # GTNH
+    rectAspectsRB2 = LinkableCoord(LTx + Ws * 14.625, LTy + Hs * 7.2) # GTNH
+    UI.addObject(
+        Line(rectAspectsLT2.x, rectAspectsLT2.y, rectAspectsRB2.x, rectAspectsRB2.y, dashed=True, color=QColor('brown')))
+    UI.addObject(
+        Line(rectAspectsRB2.x, rectAspectsLT2.y, rectAspectsLT2.x, rectAspectsRB2.y, dashed=True, color=QColor('brown')))
+    rectAspectsListing2 = UI.addObject(
+        Rect(rectAspectsLT2.x, rectAspectsLT2.y, rectAspectsRB2.x, rectAspectsRB2.y, dashed=True, color=QColor('orange')))
+
+    verticalListingLines2 = []
+    for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
+        xVal = rectAspectsLT2.x + x * rectAspectsListing2.w / THAUM_ASPECTS_INVENTORY_SLOTS_X
+        line = Line(xVal, rectAspectsLT2.y, xVal, rectAspectsRB2.y, dashed=True, color=QColor('orange'), width=1)
+        verticalListingLines2.append(line)
+        UI.addObject(line)
+    horizontalListingLines2 = []
+    for y in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_Y):
+        yVal = rectAspectsLT2.y + y * rectAspectsListing2.h / THAUM_ASPECTS_INVENTORY_SLOTS_Y
+        line = Line(rectAspectsLT2.x, yVal, rectAspectsRB2.x, yVal, dashed=True, color=QColor('orange'), width=1)
+        horizontalListingLines2.append(line)
+        UI.addObject(line)
+
+    def updateListingRectCoords2():
+        rectW = rectAspectsRB2.x - rectAspectsLT2.x
+        rectH = rectAspectsRB2.y - rectAspectsLT2.y
+        for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
+            xVal = rectAspectsLT2.x + x * rectW / THAUM_ASPECTS_INVENTORY_SLOTS_X
+            verticalListingLines2[x - 1].S.x = xVal
+            verticalListingLines2[x - 1].E.x = xVal
+        for y in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_Y):
+            yVal = rectAspectsLT2.y + y * rectH / THAUM_ASPECTS_INVENTORY_SLOTS_Y
+            horizontalListingLines2[y - 1].S.y = yVal
+            horizontalListingLines2[y - 1].E.y = yVal
+
+    UI.addObject(Point(rectAspectsLT2.x, rectAspectsLT2.y, movable=True, onMoveCallback=updateListingRectCoords2))
+    UI.addObject(Point(rectAspectsRB2.x, rectAspectsRB2.y, movable=True,
+                       onMoveCallback=updateListingRectCoords2))  # aspects listing rectangle
+
+    # ^ GTNH ^ #
+
+    # aspectsScrollY = LinkableValue(LTy + Hs * 7.65)
+    # pointAspectsScrollLeft = UI.addObject(
+    #     Point(LTx + Ws * 2, aspectsScrollY, movable=True, color=QColor('lightblue')))  # aspects scroll left
+    # pointAspectsScrollRight = UI.addObject(
+    #     Point(LTx + Ws * 3.5, aspectsScrollY, movable=True, color=QColor('lightblue')))  # aspects scroll right
+
+    # aspectsMixY = LinkableValue(LTy + Hs * 9)
+    # pointAspectsMixLeft = UI.addObject(
+    #     Point(LTx + Ws * 1, aspectsMixY, movable=True, color=QColor('pink')))  # aspects mix left
+    # pointAspectsMixCreate = UI.addObject(
+    #     Point(LTx + Ws * 2.75, aspectsMixY, movable=True, color=QColor('pink')))  # aspects mix create
+    # pointAspectsMixRight = UI.addObject(
+    #     Point(LTx + Ws * 4.5, aspectsMixY, movable=True, color=QColor('pink')))  # aspects mix right
+
+    # rectLT = LinkableCoord(LTx + Ws * 2.55, LTy + Hs * 10.8)
+    # rectRB = LinkableCoord(LTx + Ws * 12.4, LTy + Hs * 14)
+    rectLT = LinkableCoord(LTx + Ws * 3.6, LTy + Hs * 9.2) # GTNH
+    rectRB = LinkableCoord(LTx + Ws * 11.4, LTy + Hs * 11.8) # GTNH
     UI.addObject(Line(rectLT.x, rectLT.y, rectRB.x, rectRB.y, dashed=True, color=QColor('brown')))
     UI.addObject(Line(rectRB.x, rectLT.y, rectLT.x, rectRB.y, dashed=True, color=QColor('brown')))
     rectInventory = UI.addObject(Rect(rectLT.x, rectLT.y, rectRB.x, rectRB.y, dashed=True, color=QColor('purple')))
     UI.addObject(Point(rectLT.x, rectLT.y, movable=True))
     UI.addObject(Point(rectRB.x, rectRB.y, movable=True))  # inventory rectangle
 
-    rectHexagonsCC = LinkableCoord(LTx + Ws * 10, LTy + Hs * 5)
-    rectHexagonsTy = LinkableValue(LTy + Hs * 1.05)
+    # rectHexagonsCC = LinkableCoord(LTx + Ws * 10, LTy + Hs * 5)
+    # rectHexagonsTy = LinkableValue(LTy + Hs * 1.05)
+    rectHexagonsCC = LinkableCoord(LTx + Ws * 7.5, LTy + Hs * 5) # GTNH
+    rectHexagonsTy = LinkableValue(LTy + Hs * 2) # GTNH
     verticalHexagonsLines = []
     deg30HexagonsLines = []
     deg60HexagonsLines = []
     for i in range(THAUM_HEXAGONS_SLOTS_COUNT):
-        line = Line(0, 0, 0, 0, dashed=True, color=QColor('lightblue'), width=1)
+        # line = Line(0, 0, 0, 0, dashed=True, color=QColor('lightblue'), width=1)
+        line = Line(0, 0, 0, 0, dashed=True, color=QColor('blue'), width=1) # GTNH
         verticalHexagonsLines.append(line)
         UI.addObject(line)
 
-        line = Line(0, 0, 0, 0, dashed=True, color=QColor('lightblue'), width=1)
+        # line = Line(0, 0, 0, 0, dashed=True, color=QColor('lightblue'), width=1)
+        line = Line(0, 0, 0, 0, dashed=True, color=QColor('blue'), width=1) # GTNH
         deg30HexagonsLines.append(line)
         UI.addObject(line)
 
-        line = Line(0, 0, 0, 0, dashed=True, color=QColor('lightblue'), width=1)
+        # line = Line(0, 0, 0, 0, dashed=True, color=QColor('lightblue'), width=1)
+        line = Line(0, 0, 0, 0, dashed=True, color=QColor('blue'), width=1) # GTNH
         deg60HexagonsLines.append(line)
         UI.addObject(line)
 
@@ -460,7 +525,7 @@ def beReadyForCreatingTI(UI: OverlayUI):
         chooseThaumVersion, [UI],
     )
 
-def directlyCreateTI(UI):
+def directlyCreateTI(UI : OverlayUI):
     logging.info(f"Create TI")
     TI = createTI(UI)
     if TI is None:
@@ -471,8 +536,8 @@ def directlyCreateTI(UI):
     renderDelay()
     TI.updateAvailableAspectsInInventory(detectionAspectsDialogue, [UI, TI])
 
-def detectionAspectsDialogue(UI, TI):
-    TI.scrollToLeftSide()
+def detectionAspectsDialogue(UI : OverlayUI, TI : ThaumInteractor):
+    # TI.scrollToLeftSide()
     logging.info(f"TI successfully detected all aspects")
 
     UI.clearAll()
@@ -501,126 +566,131 @@ def detectionAspectsDialogue(UI, TI):
         else:
             currentAspectImage.clearImage()
 
-    def drawCurrentPageAspects():
+    def drawAspects():
         UI.removeObjects(cellsObjects)
         cellsObjects.clear()
 
-        def onClickCell(aspect: Aspect, cellX: int, cellY: int):
+        def onClickCell(aspect: Aspect, cellX: int, cellY: int, rectAspectNumber : int):
             logging.info(f"Click on aspect to change: {aspect}, cellX: {cellX}, cellY {cellY}")
             currentAspectCellCoords[0] = cellX
             currentAspectCellCoords[1] = cellY
+            currentAspectCellCoords[2] = rectAspectNumber # GTNH
             currentAspectCount[0] = str(aspect.count if aspect else "")
             currentAspect[0] = aspect
             updateCurrentAspectData()
             switchToCellDialogue()
 
-        # for i in range(len(TI.availableAspects)):
-        for cellX in range(THAUM_ASPECTS_INVENTORY_SLOTS_X):
-            for cellY in range(THAUM_ASPECTS_INVENTORY_SLOTS_Y):
-                aspect = TI.getAspectByCellCoords(TI.currentAspectsPageIdx + cellX, cellY)
-                cellRectCoords = list(TI.inventoryCellCoordsToPixelBoundingBox(cellX, cellY))
-                cellWidth = cellRectCoords[2] - cellRectCoords[0]
-                cellHeight = cellRectCoords[3] - cellRectCoords[1]
-                cellRect = Rect(
-                    *cellRectCoords,
-                    color=cellColorFree,
-                    fill=QColor(cellColorFree),
-                    fillOpacity=0.1,
-                    onClickCallback=onClickCell,
-                    onClickCallbackArgs=[aspect, TI.currentAspectsPageIdx + cellX, cellY],
-                    hoverable=True,
-                    clickable=True,
-                )
-                imageSize = cellHeight / 3 * 2
-                imageRect = Rect(
-                    cellRectCoords[0], cellRectCoords[1],
-                    cellRectCoords[2], cellRectCoords[1] + imageSize,
-                    color=QColor('transparent'),
-                    fill=QColor(cellColorFree),
-                    fillOpacity=0.7,
-                    hoverable=True,
-                    clickable=True,
-                )
-                cellAspectImageObject = Image(
-                    cellRectCoords[0] + imageSize / 2,
-                    cellRectCoords[1] - imageSize / 2,
-                    imageSize,
-                    imageSize,
-                    None,
-                )
-                cellsObjects.append(cellRect)
-                cellsObjects.append(imageRect)
-                cellsObjects.append(cellAspectImageObject)
-                UI.addObject(cellRect)
-                UI.addObject(imageRect)
-                UI.addObject(cellAspectImageObject)
-
-                if aspect:
-                    cellAspectImageObject.setImage(aspect.pixMapImage)
-                    cellAspectImageCountText = Text(
-                        cellRectCoords[0] + cellWidth * 0.4,
-                        cellRectCoords[1] + cellHeight * 0.2,
-                        str(aspect.count),
-                        color=QColor('#ff4444'),
-                        withBackground=True,
-                        padding=0,
+        for rectAspectNumber in range(RECT_ASPECTS_NUMBERS): # GTNH
+            for cellX in range(THAUM_ASPECTS_INVENTORY_SLOTS_X):
+                for cellY in range(THAUM_ASPECTS_INVENTORY_SLOTS_Y):
+                    # aspect = TI.getAspectByCellCoords(TI.currentAspectsPageIdx + cellX, cellY)
+                    aspect = TI.getAspectByCellCoords(cellX, cellY, rectAspectNumber) # GTNH
+                    cellRectCoords = list(TI.inventoryCellCoordsToPixelBoundingBox(cellX, cellY, rectAspectNumber))
+                    cellWidth = cellRectCoords[2] - cellRectCoords[0]
+                    cellHeight = cellRectCoords[3] - cellRectCoords[1]
+                    cellRect = Rect(
+                        *cellRectCoords,
+                        color=cellColorFree,
+                        fill=QColor(cellColorFree),
+                        fillOpacity=0.1,
+                        onClickCallback=onClickCell,
+                        # onClickCallbackArgs=[aspect, TI.currentAspectsPageIdx + cellX, cellY],
+                        onClickCallbackArgs=[aspect, cellX, cellY, rectAspectNumber], # GTNH
+                        hoverable=True,
+                        clickable=True,
                     )
-                    cellsObjects.append(cellAspectImageCountText)
-                    UI.addObject(cellAspectImageCountText)
+                    imageSize = cellHeight / 3 * 2
+                    imageRect = Rect(
+                        cellRectCoords[0], cellRectCoords[1],
+                        cellRectCoords[2], cellRectCoords[1] + imageSize,
+                        color=QColor('transparent'),
+                        fill=QColor(cellColorFree),
+                        fillOpacity=0.7,
+                        hoverable=True,
+                        clickable=True,
+                    )
+                    cellAspectImageObject = Image(
+                        cellRectCoords[0] + imageSize / 2,
+                        cellRectCoords[1] - imageSize / 2,
+                        imageSize,
+                        imageSize,
+                        None,
+                    )
+                    cellsObjects.append(cellRect)
+                    cellsObjects.append(imageRect)
+                    cellsObjects.append(cellAspectImageObject)
+                    UI.addObject(cellRect)
+                    UI.addObject(imageRect)
+                    UI.addObject(cellAspectImageObject)
 
-        logging.info(f"Inventory page with aspects successfully drawn. Current page idx {TI.currentAspectsPageIdx}")
-    drawCurrentPageAspects()
+                    if aspect:
+                        cellAspectImageObject.setImage(aspect.pixMapImage)
+                        cellAspectImageCountText = Text(
+                            cellRectCoords[0] + cellWidth * 0.4,
+                            cellRectCoords[1] + cellHeight * 0.2,
+                            str(aspect.count),
+                            color=QColor('#ff4444'),
+                            withBackground=True,
+                            padding=0,
+                        )
+                        cellsObjects.append(cellAspectImageCountText)
+                        UI.addObject(cellAspectImageCountText)
 
-    LPoint = TI.pointAspectsScrollLeft
-    RPoint = TI.pointAspectsScrollRight
+        # logging.info(f"Inventory page with aspects successfully drawn. Current page idx {TI.currentAspectsPageIdx}")
+        logging.info(f"Inventory page with aspects successfully drawn.") # GTNH
+    drawAspects()
+
+    # LPoint = TI.pointAspectsScrollLeft
+    # RPoint = TI.pointAspectsScrollRight
     # buttonsLRWidth = (RPoint.x - LPoint.x)
     # buttonsLRHeight = buttonsLRWidth * 0.3
-    def onClickScrollButton(isLeft=False):
-        logging.info(f"Inventory aspects page scrolling to {'LEFT' if isLeft else 'RIGHT'}")
-        UI.setAllObjectsVisibility(False)
-        exitButton.setVisibility(True)
-        UI.repaint()
-        eventsDelay()
-        if isLeft:
-            TI.scrollLeft()
-        else:
-            TI.scrollRight()
-        switchToMainDialogue()
-        logging.info(f"New current aspects inventory page idx: {TI.currentAspectsPageIdx}")
-    buttonScrollL = Text(
-        LPoint.x, LPoint.y,
-        '<=',
-        color=QColor('white'),
-        withBackground=True,
-        padding=(MARGIN * 0.1, MARGIN, MARGIN * 0.1, MARGIN),
-        align=Align.center,
-        UI=UI,
-        hoverable=True,
-        clickable=True,
-        onClickCallback=onClickScrollButton,
-        onClickCallbackArgs=[True],
-    )
-    buttonScrollR = Text(
-        RPoint.x, RPoint.y,
-        '=>',
-        color=QColor('white'),
-        withBackground=True,
-        padding=(MARGIN * 0.1, MARGIN, MARGIN * 0.1, MARGIN),
-        align=Align.center,
-        UI=UI,
-        hoverable=True,
-        clickable=True,
-        onClickCallback=onClickScrollButton,
-        onClickCallbackArgs=[False],
-    )
-    buttonScrollL.setVisibility(False)
-    UI.addObject(buttonScrollL)
-    UI.addObject(buttonScrollR)
+    # def onClickScrollButton(isLeft=False):
+    #     logging.info(f"Inventory aspects page scrolling to {'LEFT' if isLeft else 'RIGHT'}")
+    #     UI.setAllObjectsVisibility(False)
+    #     exitButton.setVisibility(True)
+    #     UI.repaint()
+    #     eventsDelay()
+    #     if isLeft:
+    #         TI.scrollLeft()
+    #     else:
+    #         TI.scrollRight()
+    #     switchToMainDialogue()
+    #     logging.info(f"New current aspects inventory page idx: {TI.currentAspectsPageIdx}")
+    # buttonScrollL = Text(
+    #     LPoint.x, LPoint.y,
+    #     '<=',
+    #     color=QColor('white'),
+    #     withBackground=True,
+    #     padding=(MARGIN * 0.1, MARGIN, MARGIN * 0.1, MARGIN),
+    #     align=Align.center,
+    #     UI=UI,
+    #     hoverable=True,
+    #     clickable=True,
+    #     onClickCallback=onClickScrollButton,
+    #     onClickCallbackArgs=[True],
+    # )
+    # buttonScrollR = Text(
+    #     RPoint.x, RPoint.y,
+    #     '=>',
+    #     color=QColor('white'),
+    #     withBackground=True,
+    #     padding=(MARGIN * 0.1, MARGIN, MARGIN * 0.1, MARGIN),
+    #     align=Align.center,
+    #     UI=UI,
+    #     hoverable=True,
+    #     clickable=True,
+    #     onClickCallback=onClickScrollButton,
+    #     onClickCallbackArgs=[False],
+    # )
+    # buttonScrollL.setVisibility(False)
+    # UI.addObject(buttonScrollL)
+    # UI.addObject(buttonScrollR)
 
-    mainDialogueObjects = [mainText, nextButton, backButton, buttonScrollL, buttonScrollR]
+    # mainDialogueObjects = [mainText, nextButton, backButton, buttonScrollL, buttonScrollR]
+    mainDialogueObjects = [mainText, nextButton, backButton] # GTNH
 
     # --- Cell dialogue elements
-    currentAspectCellCoords: list[int | None] = [None, None]
+    currentAspectCellCoords: list[int | None] = [None, None, None]
     currentAspectCount = [""]
     currentAspect: list[Aspect | None] = [None]
     cellDialogueObjects: list[UIPrimitive] = []
@@ -636,7 +706,7 @@ def detectionAspectsDialogue(UI, TI):
         logging.info(f"Previous aspect: {prevAspect}, change to: {newAspect}")
         TI.setAspectIntoAvailables(
             newAspect,
-            currentAspectCellCoords[0], currentAspectCellCoords[1]
+            *currentAspectCellCoords
         )
         logging.info(f"All new available aspects: {TI.availableAspects}")
         switchToMainDialogue()
@@ -768,13 +838,14 @@ def detectionAspectsDialogue(UI, TI):
         logging.info(f"Switching to a main change inventory apsects dialogue...")
         UI.setObjectsVisibility(cellDialogueObjects, False)
         UI.setObjectsVisibility(mainDialogueObjects, True)
-        buttonScrollL.setVisibility(True)
-        buttonScrollR.setVisibility(True)
-        if TI.currentAspectsPageIdx <= 0:
-            buttonScrollL.setVisibility(False)
-        if TI.currentAspectsPageIdx >= TI.maxAspectsPagesCount - 1:
-            buttonScrollR.setVisibility(False)
-        drawCurrentPageAspects()
+        # buttonScrollL.setVisibility(True)
+        # buttonScrollR.setVisibility(True)
+        # if TI.currentAspectsPageIdx <= 0:
+        #     buttonScrollL.setVisibility(False)
+        # if TI.currentAspectsPageIdx >= TI.maxAspectsPagesCount - 1:
+        #     buttonScrollR.setVisibility(False)
+        drawAspects()
+
     def switchToCellDialogue():
         logging.info(f"Switching to a directly change aspect dialogue...")
         UI.removeObjects(cellsObjects)

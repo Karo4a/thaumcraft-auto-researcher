@@ -19,12 +19,14 @@ class Aspect:
     count: int = None
     cellX: int | None
     cellY: int | None
+    rectAspectsNumber : int | None
 
-    def __init__(self, name: str, idx: int, cellX: int = None, cellY: int = None):
+    def __init__(self, name: str, idx: int, cellX: int = None, cellY: int = None, rectAspectsNumber : int = None):
         self.name = name
         self.uid = idx
         self.cellX = cellX
         self.cellY = cellY
+        self.rectAspectsNumber = rectAspectsNumber
 
         imagePath = getAspectImagePath(self.name)
         try:

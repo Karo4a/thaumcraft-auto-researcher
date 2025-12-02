@@ -8,11 +8,13 @@ import pyscreeze  # for screenshot
 from PIL import Image
 from PyQt5.QtGui import QColor, QPixmap
 
+from src.UI.OverlayUI import OverlayUI
 from src.UI.primitives import Circle, Rect
 from src.controllers import Scenarios
 from src.controllers.Aspect import Aspect
 from src.controllers.Point import P
-from src.logic.Neurolink import Neurolink
+from src.logic.Neurolink import Neurolink, ObjectPrediction
+from src.logic.digit_recognition import is_digit, aspects_count
 from src.utils.constants import INVENTORY_SLOTS_X, INVENTORY_SLOTS_Y, THAUM_ASPECTS_INVENTORY_SLOTS_X, \
     THAUM_ASPECTS_INVENTORY_SLOTS_Y, ASPECTS_IMAGES_SIZE, \
     THAUM_CONTROLS_CONFIG_PATH, THAUM_ASPECTS_ORDER_CONFIG_PATH, \
@@ -20,13 +22,14 @@ from src.utils.constants import INVENTORY_SLOTS_X, INVENTORY_SLOTS_Y, THAUM_ASPE
     IMAGES_TOLERANCE_PERCENT, \
     THAUM_VERSION_CONFIG_PATH, DEBUG, \
     UNKNOWN_ASPECT_IMAGE_PATH, NEUROLINK_FREE_HEXAGON_PREDICTION_NAME, \
-    NEUROLINK_SCRIPT_IMAGE_PREDICTION_NAME, DELAY_BETWEEN_RENDER, DELAY_BETWEEN_EVENTS
+    NEUROLINK_SCRIPT_IMAGE_PREDICTION_NAME, DELAY_BETWEEN_RENDER, DELAY_BETWEEN_EVENTS, \
+    RECT_ASPECTS_NUMBERS
 from src.utils.constants import getAspectImagePath
 from src.utils.utils import getImagesDiffPercent, readJSONConfig, eventsDelay, renderDelay, \
     loadRecipesForSelectedVersion
 
 
-def createTI(UI):
+def createTI(UI : OverlayUI):
     pointsConfig = readJSONConfig(THAUM_CONTROLS_CONFIG_PATH)
     if pointsConfig is None:
         Scenarios.enroll(UI)
@@ -53,25 +56,25 @@ def createTI(UI):
 
 
 class ThaumInteractor:
-    UI = None
-
     workingInventorySlot = -1  # can be 0..26 (inventory 9x3)
-    currentAspectsPageIdx = None  # Current aspects inventory page idx
+    # currentAspectsPageIdx = None  # Current aspects inventory page idx
     allAspects: list[Aspect] = []  # All aspects that for selected version and all known addons
     availableAspects: list[Aspect] = []  # Only available in inventory aspects
     recipes: dict[str, list[str, str]]  # All aspects recipes
-    maxAspectsPagesCount: int = None  # Total aspects inventory pages count
+    # maxAspectsPagesCount: int = None  # Total aspects inventory pages count
 
     pointWritingMaterials: P
     pointPapers: P
     pointSafePosition: P
     rectAspectsListingLT: P
     rectAspectsListingRB: P
-    pointAspectsScrollLeft: P
-    pointAspectsScrollRight: P
-    pointAspectsMixLeft: P
-    pointAspectsMixCreate: P
-    pointAspectsMixRight: P
+    rectAspectsListingLT2: P
+    rectAspectsListingRB2: P
+    # pointAspectsScrollLeft: P
+    # pointAspectsScrollRight: P
+    # pointAspectsMixLeft: P
+    # pointAspectsMixCreate: P
+    # pointAspectsMixRight: P
     rectInventoryLT: P
     rectInventoryRB: P
     rectHexagonsCC: P
@@ -81,7 +84,7 @@ class ThaumInteractor:
 
     unknownAspectImage: Image.Image = None
 
-    def __init__(self, UI, controlsConfig: dict[str, dict[str, float]], aspectsRecipes: dict[str, list[str, str]],
+    def __init__(self, UI : OverlayUI, controlsConfig: dict[str, dict[str, float]], aspectsRecipes: dict[str, list[str, str]],
                  orderedAvailableAspects: list[str]):
         self.UI = UI
 
@@ -91,11 +94,13 @@ class ThaumInteractor:
         self.pointSafePosition = P((self.pointPapers.x + self.pointWritingMaterials.x) / 2, self.pointPapers.y)
         self.rectAspectsListingLT = P(c['rectAspectsListingLT']['x'], c['rectAspectsListingLT']['y'])
         self.rectAspectsListingRB = P(c['rectAspectsListingRB']['x'], c['rectAspectsListingRB']['y'])
-        self.pointAspectsScrollLeft = P(c['pointAspectsScrollLeft']['x'], c['pointAspectsScrollLeft']['y'])
-        self.pointAspectsScrollRight = P(c['pointAspectsScrollRight']['x'], c['pointAspectsScrollRight']['y'])
-        self.pointAspectsMixLeft = P(c['pointAspectsMixLeft']['x'], c['pointAspectsMixLeft']['y'])
-        self.pointAspectsMixCreate = P(c['pointAspectsMixCreate']['x'], c['pointAspectsMixCreate']['y'])
-        self.pointAspectsMixRight = P(c['pointAspectsMixRight']['x'], c['pointAspectsMixRight']['y'])
+        self.rectAspectsListingLT2 = P(c['rectAspectsListingLT2']['x'], c['rectAspectsListingLT2']['y']) # GTNH
+        self.rectAspectsListingRB2 = P(c['rectAspectsListingRB2']['x'], c['rectAspectsListingRB2']['y']) # GTNH
+        # self.pointAspectsScrollLeft = P(c['pointAspectsScrollLeft']['x'], c['pointAspectsScrollLeft']['y'])
+        # self.pointAspectsScrollRight = P(c['pointAspectsScrollRight']['x'], c['pointAspectsScrollRight']['y'])
+        # self.pointAspectsMixLeft = P(c['pointAspectsMixLeft']['x'], c['pointAspectsMixLeft']['y'])
+        # self.pointAspectsMixCreate = P(c['pointAspectsMixCreate']['x'], c['pointAspectsMixCreate']['y'])
+        # self.pointAspectsMixRight = P(c['pointAspectsMixRight']['x'], c['pointAspectsMixRight']['y'])
         self.rectInventoryLT = P(c['rectInventoryLT']['x'], c['rectInventoryLT']['y'])
         self.rectInventoryRB = P(c['rectInventoryRB']['x'], c['rectInventoryRB']['y'])
         self.rectHexagonsCC = P(c['rectHexagonsCC']['x'], c['rectHexagonsCC']['y'])
@@ -147,42 +152,42 @@ class ThaumInteractor:
                 logging.critical(f"Couldn't load image from path {imagePath} Error: {e}")
                 aspect.mask = Image.open(UNKNOWN_ASPECT_IMAGE_PATH).convert("L")
 
-    def scrollLeft(self):
-        if self.currentAspectsPageIdx <= 0:
-            return
-        logging.info(f"Thaum inventory scrolling left")
-        self.pointAspectsScrollLeft.click()
-        self._showDebugClick(self.pointAspectsScrollLeft)
-        self.currentAspectsPageIdx -= 1
+    # def scrollLeft(self):
+    #     if self.currentAspectsPageIdx <= 0:
+    #         return
+    #     logging.info(f"Thaum inventory scrolling left")
+    #     self.pointAspectsScrollLeft.click()
+    #     self._showDebugClick(self.pointAspectsScrollLeft)
+    #     self.currentAspectsPageIdx -= 1
 
-    def scrollRight(self):
-        if self.currentAspectsPageIdx >= self.maxAspectsPagesCount - 1:
-            return
-        logging.info(f"Thaum inventory scrolling right")
-        self.pointAspectsScrollRight.click()
-        self._showDebugClick(self.pointAspectsScrollRight)
-        self.currentAspectsPageIdx += 1
+    # def scrollRight(self):
+    #     if self.currentAspectsPageIdx >= self.maxAspectsPagesCount - 1:
+    #         return
+    #     logging.info(f"Thaum inventory scrolling right")
+    #     self.pointAspectsScrollRight.click()
+    #     self._showDebugClick(self.pointAspectsScrollRight)
+    #     self.currentAspectsPageIdx += 1
 
-    def scrollToLeftSide(self):
-        logging.info(f"Thaum inventory scrolling to left side border...")
-        if self.currentAspectsPageIdx is None:
-            if self.maxAspectsPagesCount is not None:
-                self.currentAspectsPageIdx = self.maxAspectsPagesCount
-            else:
-                self.currentAspectsPageIdx = len(self.allAspects) // THAUM_ASPECTS_INVENTORY_SLOTS_Y + 1
-        for _ in range(self.currentAspectsPageIdx):
-            self.scrollLeft()
-            eventsDelay()
-        self.currentAspectsPageIdx = 0
+    # def scrollToLeftSide(self):
+    #     logging.info(f"Thaum inventory scrolling to left side border...")
+    #     if self.currentAspectsPageIdx is None:
+    #         if self.maxAspectsPagesCount is not None:
+    #             self.currentAspectsPageIdx = self.maxAspectsPagesCount
+    #         else:
+    #             self.currentAspectsPageIdx = len(self.allAspects) // THAUM_ASPECTS_INVENTORY_SLOTS_Y + 1
+    #     for _ in range(self.currentAspectsPageIdx):
+    #         self.scrollLeft()
+    #         eventsDelay()
+    #     self.currentAspectsPageIdx = 0
 
-    def scrollToRightSide(self):
-        logging.info(f"Thaum inventory scrolling to right side border...")
-        if self.currentAspectsPageIdx is None:
-            self.currentAspectsPageIdx = 0
-        for _ in range(self.maxAspectsPagesCount - self.currentAspectsPageIdx):
-            self.scrollRight()
-            eventsDelay()
-        self.currentAspectsPageIdx = self.maxAspectsPagesCount
+    # def scrollToRightSide(self):
+    #     logging.info(f"Thaum inventory scrolling to right side border...")
+    #     if self.currentAspectsPageIdx is None:
+    #         self.currentAspectsPageIdx = 0
+    #     for _ in range(self.maxAspectsPagesCount - self.currentAspectsPageIdx):
+    #         self.scrollRight()
+    #         eventsDelay()
+    #     self.currentAspectsPageIdx = self.maxAspectsPagesCount
 
     def _showDebugClick(self, point, color=QColor('lightgreen')):
         if not DEBUG:
@@ -239,27 +244,46 @@ class ThaumInteractor:
             self.rectInventoryLT.y + (slotHeight * 0.5) + slotHeight * (self.workingInventorySlot // INVENTORY_SLOTS_X)
         )
 
-    def inventoryCellCoordsToPixelCoords(self, cellX: int, cellY: int) -> P:
-        areaWidth = self.rectAspectsListingRB.x - self.rectAspectsListingLT.x
-        areaHeight = self.rectAspectsListingRB.y - self.rectAspectsListingLT.y
+    def getRectAspectListingLTbyNumber(self, rectAspectNumber : int) -> P: # GTNH
+        match rectAspectNumber:
+            case 0:
+                return self.rectAspectsListingLT
+            case 1:
+                return self.rectAspectsListingLT2
+
+    
+    def getRectAspectListingRBbyNumber(self, rectAspectNumber : int) -> P: # GTNH
+        match rectAspectNumber:
+            case 0:
+                return self.rectAspectsListingRB
+            case 1:
+                return self.rectAspectsListingRB2
+
+    def inventoryCellCoordsToPixelCoords(self, cellX: int, cellY: int, rectAspectNumber : int) -> P:
+        rectAspectsListingLT = self.getRectAspectListingLTbyNumber(rectAspectNumber) # GTNH 
+        rectAspectsListingRB = self.getRectAspectListingRBbyNumber(rectAspectNumber) # GTNH
+        areaWidth = rectAspectsListingRB.x - rectAspectsListingLT.x
+        areaHeight = rectAspectsListingRB.y - rectAspectsListingLT.y
         slotWidth = areaWidth / THAUM_ASPECTS_INVENTORY_SLOTS_X
         slotHeight = areaHeight / THAUM_ASPECTS_INVENTORY_SLOTS_Y
         return P(
-            self.rectAspectsListingLT.x + slotWidth * (cellX + 0.5),
-            self.rectAspectsListingLT.y + slotHeight * (cellY + 0.5)
+            rectAspectsListingLT.x + slotWidth * (cellX + 0.5),
+            rectAspectsListingLT.y + slotHeight * (cellY + 0.5)
         )
 
-    def inventoryCellCoordsToPixelBoundingBox(self, cellX: int, cellY: int) -> tuple[int, int, int, int]:
-        areaWidth = self.rectAspectsListingRB.x - self.rectAspectsListingLT.x
-        areaHeight = self.rectAspectsListingRB.y - self.rectAspectsListingLT.y
+    def inventoryCellCoordsToPixelBoundingBox(self, cellX: int, cellY: int, rectAspectNumber : int) -> tuple[int, int, int, int]:
+        rectAspectsListingLT = self.getRectAspectListingLTbyNumber(rectAspectNumber) # GTNH 
+        rectAspectsListingRB = self.getRectAspectListingRBbyNumber(rectAspectNumber) # GTNH
+        areaWidth = rectAspectsListingRB.x - rectAspectsListingLT.x
+        areaHeight = rectAspectsListingRB.y - rectAspectsListingLT.y
         slotWidth = areaWidth / THAUM_ASPECTS_INVENTORY_SLOTS_X
         slotHeight = areaHeight / THAUM_ASPECTS_INVENTORY_SLOTS_Y
-        x = self.rectAspectsListingLT.x + slotWidth * cellX
-        y = self.rectAspectsListingLT.y + slotHeight * cellY
+        x = rectAspectsListingLT.x + slotWidth * cellX
+        y = rectAspectsListingLT.y + slotHeight * cellY
         return x, y, x + slotWidth, y + slotHeight
 
-    def takeAspectByCellCoords(self, cellX, cellY):
-        aspectPoint = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
+    def takeAspectByCellCoords(self, cellX, cellY, rectAspectNumber):
+        aspectPoint = self.inventoryCellCoordsToPixelCoords(cellX, cellY, rectAspectNumber)
         logging.info(f"Take aspect from cell ({cellX, cellY}), coordinates: {aspectPoint}")
         aspectPoint.hold()
         self._showDebugClick(aspectPoint, QColor('blue'))
@@ -282,15 +306,15 @@ class ThaumInteractor:
     def getCellIdxByCellCoords(self, cellX: int, cellY: int) -> int:
         return cellX * THAUM_ASPECTS_INVENTORY_SLOTS_Y + cellY
 
-    def getAspectByCellCoords(self, cellX: int, cellY: int) -> Aspect | None:
+    def getAspectByCellCoords(self, cellX: int, cellY: int, rectAspectNumber : int) -> Aspect | None: # GTNH
         for i in range(len(self.availableAspects)):
             aspect = self.availableAspects[i]
-            if aspect.cellX == cellX and aspect.cellY == cellY:
+            if aspect.cellX == cellX and aspect.cellY == cellY and aspect.rectAspectsNumber == rectAspectNumber:
                 return aspect
         return None
 
-    def setAspectIntoAvailables(self, aspect: Aspect, cellX: int, cellY: int):
-        prevAspect = self.getAspectByCellCoords(cellX, cellY)
+    def setAspectIntoAvailables(self, aspect: Aspect, cellX: int, cellY: int, rectAspectNumber : int):
+        prevAspect = self.getAspectByCellCoords(cellX, cellY, rectAspectNumber)
         aspect.cellX = cellX
         aspect.cellY = cellY
         logging.info(f"Adding new aspect to availables: {aspect}. Previous aspect in this cell: {prevAspect}")
@@ -329,28 +353,34 @@ class ThaumInteractor:
         removeAspectDuplicates()
 
 
-    def scrollToAspect(self, aspect: Aspect) -> (int, int):
-        logging.info(f"Scroll to aspect {aspect}, in cell[absolute] ({aspect.cellX}, {aspect.cellY})")
+    # def scrollToAspect(self, aspect: Aspect) -> (int, int): # type: ignore
+    #     logging.info(f"Scroll to aspect {aspect}, in cell[absolute] ({aspect.cellX}, {aspect.cellY})")
 
-        cellPageIdxMin = max(aspect.cellX - THAUM_ASPECTS_INVENTORY_SLOTS_X + 1, 0)
-        cellPageIdxMax = min(aspect.cellX, self.maxAspectsPagesCount)
+    #     cellPageIdxMin = max(aspect.cellX - THAUM_ASPECTS_INVENTORY_SLOTS_X + 1, 0)
+    #     cellPageIdxMax = min(aspect.cellX, self.maxAspectsPagesCount)
 
-        if self.currentAspectsPageIdx < cellPageIdxMin:
-            for _ in range(self.currentAspectsPageIdx, cellPageIdxMin):
-                self.scrollRight()
-                eventsDelay()
-        elif self.currentAspectsPageIdx > cellPageIdxMax:
-            for _ in range(cellPageIdxMax, self.currentAspectsPageIdx):
-                self.scrollLeft()
-                eventsDelay()
+    #     if self.currentAspectsPageIdx < cellPageIdxMin:
+    #         for _ in range(self.currentAspectsPageIdx, cellPageIdxMin):
+    #             self.scrollRight()
+    #             eventsDelay()
+    #     elif self.currentAspectsPageIdx > cellPageIdxMax:
+    #         for _ in range(cellPageIdxMax, self.currentAspectsPageIdx):
+    #             self.scrollLeft()
+    #             eventsDelay()
 
-        return aspect.cellX - self.currentAspectsPageIdx, aspect.cellY
+    #     return aspect.cellX - self.currentAspectsPageIdx, aspect.cellY
 
-    def takeAspect(self, aspect: Aspect):
-        self.mixAspect(aspect)
+    # def takeAspect(self, aspect: Aspect):
+    #     self.mixAspect(aspect)
+    #     logging.info(f"Take aspect {aspect}...")
+    #     (cellX, cellY) = self.scrollToAspect(aspect)
+    #     self.takeAspectByCellCoords(cellX, cellY)
+    #     aspect.count -= 1
+
+    def takeAspect(self, aspect: Aspect): # GTNH
+        self.mixAspect(aspect, 1)
         logging.info(f"Take aspect {aspect}...")
-        (cellX, cellY) = self.scrollToAspect(aspect)
-        self.takeAspectByCellCoords(cellX, cellY)
+        self.takeAspectByCellCoords(aspect.cellX, aspect.cellY, aspect.rectAspectsNumber)
         aspect.count -= 1
 
     def getAspectRecipeByName(self, aspectName: str):
@@ -359,7 +389,7 @@ class ThaumInteractor:
             raise ValueError(f"Aspect {aspectName} not exists in known aspects recipes")
         return recipe
 
-    def mixAspect(self, aspect: Aspect, useShift=True, targetCount=3) -> None:
+    def mixAspect(self, aspect: Aspect, targetCount=3) -> None:
         """
         Creates aspect by mixing aspects from its recipe
 
@@ -380,34 +410,49 @@ class ThaumInteractor:
         aspect1 = self.getAspectByName(recipe[0])
         aspect2 = self.getAspectByName(recipe[1])
         # Creating aspects used in recipe so that they don't run out
-        self.mixAspect(aspect1, useShift, mixingTimes)
-        self.mixAspect(aspect2, useShift, mixingTimes)
+        self.mixAspect(aspect1, mixingTimes)
+        self.mixAspect(aspect2, mixingTimes)
 
-        if useShift:
-            (cellX, cellY) = self.scrollToAspect(aspect)
-            aspect_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
+        # if useShift:
+        #     (cellX, cellY) = self.scrollToAspect(aspect)
+        #     aspect_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
+        #     eventsDelay()
+        #     for _ in range(mixingTimes):
+        #         aspect_point.click(shift=True)
+        #         self._showDebugClick(aspect_point)
+        #         eventsDelay()
+        # else:
+        #     (cellX, cellY) = self.scrollToAspect(aspect1)
+        #     aspect1_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
+        #     eventsDelay()
+        #     aspect1_point.click()
+        #     self._showDebugClick(aspect1_point)
+        #     eventsDelay()
+        #     (cellX, cellY) = self.scrollToAspect(aspect2)
+        #     aspect2_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
+        #     eventsDelay()
+        #     aspect2_point.click()
+        #     self._showDebugClick(aspect2_point)
+        #     eventsDelay()
+        #     for _ in range(mixingTimes):
+        #         self.pointAspectsMixCreate.click()
+        #         self._showDebugClick(self.pointAspectsMixCreate)
+        #         eventsDelay()
+
+
+        # v GTHN v #
+
+        
+        self.takeAspectByCellCoords(aspect1.cellX, aspect1.cellY, aspect1.rectAspectsNumber)
+        aspect2_point = self.inventoryCellCoordsToPixelCoords(aspect2.cellX, aspect2.cellY, aspect2.rectAspectsNumber)
+        eventsDelay()
+        for _ in range(mixingTimes-1):
+            aspect2_point.click('right')
             eventsDelay()
-            for _ in range(mixingTimes):
-                aspect_point.click(shift=True)
-                self._showDebugClick(aspect_point)
-                eventsDelay()
-        else:
-            (cellX, cellY) = self.scrollToAspect(aspect1)
-            aspect1_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
-            eventsDelay()
-            aspect1_point.click()
-            self._showDebugClick(aspect1_point)
-            eventsDelay()
-            (cellX, cellY) = self.scrollToAspect(aspect2)
-            aspect2_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
-            eventsDelay()
-            aspect2_point.click()
-            self._showDebugClick(aspect2_point)
-            eventsDelay()
-            for _ in range(mixingTimes):
-                self.pointAspectsMixCreate.click()
-                self._showDebugClick(self.pointAspectsMixCreate)
-                eventsDelay()
+        aspect2_point.release()
+        eventsDelay()
+
+        # ^ GTNH ^ #
 
         # Updating counts of aspects
         aspect.count += mixingTimes
@@ -424,8 +469,8 @@ class ThaumInteractor:
         logging.debug(f"Sorted aspects link map: {aspectsListMap}")
 
         # Заполняем по одному аспекту, пролистывая к каждому следующему
-        self.currentAspectsPageIdx = None
-        self.scrollToLeftSide()
+        # self.currentAspectsPageIdx = None
+        # self.scrollToLeftSide()
         for coords, aspectName in aspectsListMap:
             aspect = self.getAspectByName(aspectName)
             self.takeAspect(aspect)
@@ -470,10 +515,10 @@ class ThaumInteractor:
         debugHighlightingRect = self.addDebugHighlightingRect()
         slotWidth = (self.rectAspectsListingRB.x - self.rectAspectsListingLT.x) / THAUM_ASPECTS_INVENTORY_SLOTS_X
         slotHeight = (self.rectAspectsListingRB.y - self.rectAspectsListingLT.y) / THAUM_ASPECTS_INVENTORY_SLOTS_Y
-        self.scrollToLeftSide()
+        # self.scrollToLeftSide()
         self.UI.repaint()
 
-        def detectAspects():
+        def detectAspects(screenshotImage : Image, rectAspectsNumber : int):
             def exitWithSort():
                 self.UI.removeObject(debugHighlightingRect)
 
@@ -484,96 +529,107 @@ class ThaumInteractor:
 
                 onFinishCallback(*callbackArgs)
 
-            def detectionIteration(isFoundEndOfInventory = False, newAdditionalOffset = THAUM_ASPECTS_INVENTORY_SLOTS_X):
-                logging.info(f"Finding aspects on new page of inventory. Current page: {self.currentAspectsPageIdx}")
-                # Calculate screenshot area
-                screenshotRBX = self.rectAspectsListingRB.x
-                screenshotRBY = self.rectAspectsListingRB.y
-                screenshotLTX = self.rectAspectsListingRB.x - slotWidth * newAdditionalOffset
-                screenshotLTY = self.rectAspectsListingLT.y
-                screenshotImage = self.takeScreenshot(
-                    screenshotLTX, screenshotLTY,
-                    screenshotRBX, screenshotRBY,
-                    debugHighlightingRect
-                )
-
-                # Find aspects on screenshot
-                logging.info("Wait for prediction aspects")
-                predictions = Neurolink.predict_inventory_aspects(screenshotImage)
-                logging.info(f"Aspects predictions: {predictions}")
-
-                logging.info("Wait for prediction counts")
-                count_predictions = Neurolink.predict_inventory_aspects_count(screenshotImage)
-                logging.info(f"Counts predictions:  {count_predictions}")
-
-                # Approximate aspects coordinates by cells
+            def splitAspectsAndDigits(predictions : list[ObjectPrediction]) \
+                -> tuple[list[ObjectPrediction], list[ObjectPrediction]]:
+                aspects = []
+                digits = []
                 for prediction in predictions:
-                    try:
-                        aspect = self.getAspectByName(prediction.predictionName)
-                        aspect_count = count_predictions[prediction.predictionName]
-                        if aspect.count is None:  # count initialization
-                            aspect.count = aspect_count or 0
-                        else:
-                            # If predictions differ we take minimal
-                            # because it's better to underestimate than to overestimate aspects count
-                            aspect.count = min(aspect.count, aspect_count)
-                    except ValueError:
-                        continue
+                    if is_digit(prediction):
+                        digits.append(prediction)
+                    else:
+                        aspects.append(prediction)
+                return aspects, digits
+
+            def filterByMaxConfidence(predictions : list[ObjectPrediction]) -> list[ObjectPrediction]:
+                filteredAspects = {}
+                for prediction in predictions:
+                    aspect = filteredAspects.get(prediction.predictionName)
+                    if aspect is None or prediction.confidence > aspect.confidence:
+                        filteredAspects[prediction.predictionName] = prediction
+                return list(filteredAspects.values())
+
+            # Find aspects on screenshot
+            logging.info("Wait for prediction aspects")
+            predictions = Neurolink.predict_inventory_aspects(screenshotImage)
+            predictionsAspect, predictionsDigit = splitAspectsAndDigits(predictions)
+            predictionsAspect = filterByMaxConfidence(predictionsAspect)
+            del predictions
+
+            logging.info(f"Aspects predictions: {predictionsAspect}")
+
+            logging.info("Wait for prediction counts")
+            # count_predictions = Neurolink.predict_inventory_aspects_count(screenshotImage)
+            count_predictions = aspects_count(predictionsAspect, predictionsDigit)
+            logging.info(f"Counts predictions:  {count_predictions}")
+
+            # Approximate aspects coordinates by cells
+            # debugAspects : list[Aspect] = []
+            for prediction in predictionsAspect:
+                try:
+                    aspect = self.getAspectByName(prediction.predictionName)
+                    aspect_count = count_predictions[prediction.predictionName]
                     coords = (
-                        self.currentAspectsPageIdx + (THAUM_ASPECTS_INVENTORY_SLOTS_X - newAdditionalOffset) + prediction.x // slotWidth,
+                        prediction.x // slotWidth,
                         prediction.y // slotHeight,
                     )
                     aspect.cellX = int(coords[0])
                     aspect.cellY = int(coords[1])
-                    logging.debug(f"Cur Page: {self.currentAspectsPageIdx}, offset: {newAdditionalOffset}, {aspect}, {aspect.cellX}, {aspect.cellY} ({prediction.x, prediction.y}), {slotWidth}, {slotHeight}")
-
-                    self.availableAspects.append(aspect)
-
-                logging.info(f"All found aspects: {self.availableAspects}")
-
-                if isFoundEndOfInventory:
-                    exitWithSort()
-                    return
-
-                # Try to scroll right on maximum of
-                # Check if we really move right or it's end of inventory
-                logging.info(f"Checking if we really can move right or it's end of inventory...")
-                newAdditionalOffset = 0
-                previousScreenshotImage = self.takeScreenshot(
-                    self.rectAspectsListingRB.x - slotWidth, self.rectAspectsListingLT.y,
-                    self.rectAspectsListingRB.x, self.rectAspectsListingLT.y + slotHeight,
-                    debugHighlightingRect
+                    
+                    # if aspect.count is None:  # count initialization
+                    aspect.count = aspect_count or 0
+                    # else:
+                    #     # If predictions differ we take minimal
+                    #     # because it's better to underestimate than to overestimate aspects count
+                    #     aspect.count = min(aspect.count, aspect_count)
+                except ValueError:
+                    continue
+                coords = (
+                    prediction.x // slotWidth,
+                    prediction.y // slotHeight,
                 )
-                while newAdditionalOffset < THAUM_ASPECTS_INVENTORY_SLOTS_X:
-                    self.scrollRight()
-                    eventsDelay()
-                    renderDelay()
-                    newScreenshotImage = self.takeScreenshot(
-                        self.rectAspectsListingRB.x - slotWidth, self.rectAspectsListingLT.y,
-                        self.rectAspectsListingRB.x, self.rectAspectsListingLT.y + slotHeight,
-                        debugHighlightingRect
-                    )
-                    # check if we really scrolled right
-                    screenshotsDiff = getImagesDiffPercent(previousScreenshotImage, newScreenshotImage)
-                    logging.debug(f"Difference of two images before and after scrolling right: {screenshotsDiff}")
-                    if screenshotsDiff < IMAGES_TOLERANCE_PERCENT:  # nothing changed - it's the end of inventory
-                        logging.info(f"Found end of inventory. Detection ends")
-                        self.maxAspectsPagesCount = self.currentAspectsPageIdx
-                        isFoundEndOfInventory = True
-                        self.currentAspectsPageIdx -= 1
-                        logging.info(f"Total inventory pages: {self.maxAspectsPagesCount}")
-                        break
-                    newAdditionalOffset += 1
-                    previousScreenshotImage = newScreenshotImage
-                logging.info(f"New aspects page total width: {newAdditionalOffset}")
+                aspect.cellX = int(coords[0])
+                aspect.cellY = int(coords[1])
+                aspect.rectAspectsNumber = rectAspectsNumber
+                logging.debug(f"Aspect: {aspect}, {aspect.cellX}, {aspect.cellY}, rect: {rectAspectNumber}, ({prediction.x, prediction.y}), {slotWidth}, {slotHeight}")
 
-                if newAdditionalOffset > 0:
-                    self.UI.setTimeout(DELAY_BETWEEN_EVENTS, detectionIteration, [isFoundEndOfInventory, newAdditionalOffset])
-                else:
-                    exitWithSort()
 
-            self.UI.setTimeout(DELAY_BETWEEN_EVENTS, detectionIteration)
-        self.UI.setTimeout(DELAY_BETWEEN_EVENTS, detectAspects)
+                # debugAspects.append(aspect)
+
+                self.availableAspects.append(aspect)
+
+            # print(f"Aspects of rect: {rectAspectNumber}")
+            # mapAspects : list[list[Aspect]] = [[None for _ in range(THAUM_ASPECTS_INVENTORY_SLOTS_X)] for _ in range(THAUM_ASPECTS_INVENTORY_SLOTS_Y)]
+            # for aspect in debugAspects:
+            #     if mapAspects[aspect.cellY][aspect.cellX] is None:
+            #         mapAspects[aspect.cellY][aspect.cellX] = aspect
+            #     else:
+            #         print(f"Duplicate of {mapAspects[aspect.cellY][aspect.cellX]} - {aspect}")
+
+
+            # maxWidth = max(len(aspect.__repr__()) for aspect in debugAspects)
+
+            # for row in mapAspects:
+            #     for aspect in row:
+            #         print(aspect.__repr__().ljust(maxWidth), "  ", end="")
+            #     print()
+
+            logging.info(f"All found aspects: {self.availableAspects}")
+            exitWithSort()
+
+        for rectAspectNumber, screenshotRBX, screenshotRBY, screenshotLTX, screenshotLTY \
+            in zip(range(RECT_ASPECTS_NUMBERS),
+                   (self.rectAspectsListingRB.x, self.rectAspectsListingRB2.x),
+                   (self.rectAspectsListingRB.y, self.rectAspectsListingRB2.y),
+                   (self.rectAspectsListingLT.x, self.rectAspectsListingLT2.x),
+                   (self.rectAspectsListingLT.y, self.rectAspectsListingLT2.y)):
+            # Calculate screenshot area
+            screenshotImage = self.takeScreenshot(
+                screenshotLTX, screenshotLTY,
+                screenshotRBX, screenshotRBY,
+                debugHighlightingRect
+            )
+            detectAspects(screenshotImage, rectAspectNumber)
+            # self.UI.setTimeout(DELAY_BETWEEN_EVENTS, detectAspects, [screenshotImage, rectAspectNumber])
 
     def logAvailableAspects(self):
         string = "All available aspects by columns:"

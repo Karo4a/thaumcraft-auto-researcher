@@ -269,7 +269,7 @@ class _Window(QMainWindow):
             pass
         return obj
 
-    def removeObjects(self, objects: [UIPrimitive]):
+    def removeObjects(self, objects: list[UIPrimitive]):
         for obj in objects:
             try:
                 self.objects.remove(obj)

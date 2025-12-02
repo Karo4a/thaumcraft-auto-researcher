@@ -4,3 +4,4 @@ venv
 user_configs
 output
 logs
+__pycache__

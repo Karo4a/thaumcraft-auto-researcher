@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "./src/main.py"
+   "value": "./main.py"
   },
   {
    "optionDest": "onefile",
