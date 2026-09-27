@@ -5,3 +5,4 @@ user_configs
 output
 logs
 __pycache__
+.vscode
