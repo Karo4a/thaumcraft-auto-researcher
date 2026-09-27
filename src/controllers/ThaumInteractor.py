@@ -389,7 +389,7 @@ class ThaumInteractor:
             raise ValueError(f"Aspect {aspectName} not exists in known aspects recipes")
         return recipe
 
-    def mixAspect(self, aspect: Aspect, targetCount=3) -> None:
+    def mixAspect(self, aspect: Aspect, targetCount=3) -> bool:
         """
         Creates aspect by mixing aspects from its recipe
 
@@ -398,66 +398,101 @@ class ThaumInteractor:
             useShift: If True, then mixing is performed by Shift+LMB
             targetCount: How many aspects do we need to craft
         """
+
+        if not aspect.count:
+            aspect.count = 0
         if aspect.count >= targetCount:
-            return
+            return False
         mixingTimes = targetCount - aspect.count
         logging.info(f"Mixing aspect {aspect} to {targetCount} for {mixingTimes} times...")
         recipe = self.getAspectRecipeByName(aspect.name)
         if len(recipe) < 2:  # Aspect is basic (Aqua, Terra, Aer, Ordo, Perditio)
             if aspect.count < mixingTimes:
                 logging.critical(f"Ran out of basic aspect {aspect.name}")
-            return
-        aspect1 = self.getAspectByName(recipe[0])
-        aspect2 = self.getAspectByName(recipe[1])
-        # Creating aspects used in recipe so that they don't run out
-        self.mixAspect(aspect1, mixingTimes)
-        self.mixAspect(aspect2, mixingTimes)
+            return False
+        
+        mixingStack = [aspect]
 
-        # if useShift:
-        #     (cellX, cellY) = self.scrollToAspect(aspect)
-        #     aspect_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
-        #     eventsDelay()
-        #     for _ in range(mixingTimes):
-        #         aspect_point.click(shift=True)
-        #         self._showDebugClick(aspect_point)
-        #         eventsDelay()
-        # else:
-        #     (cellX, cellY) = self.scrollToAspect(aspect1)
-        #     aspect1_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
-        #     eventsDelay()
-        #     aspect1_point.click()
-        #     self._showDebugClick(aspect1_point)
-        #     eventsDelay()
-        #     (cellX, cellY) = self.scrollToAspect(aspect2)
-        #     aspect2_point = self.inventoryCellCoordsToPixelCoords(cellX, cellY)
-        #     eventsDelay()
-        #     aspect2_point.click()
-        #     self._showDebugClick(aspect2_point)
-        #     eventsDelay()
-        #     for _ in range(mixingTimes):
-        #         self.pointAspectsMixCreate.click()
-        #         self._showDebugClick(self.pointAspectsMixCreate)
-        #         eventsDelay()
+        totalMixingForAspect = {}
+        totalMixingForAspect[aspect.name] = mixingTimes
+        totalCostBasicAspects = {}
 
+        notProcessedRecipes = [recipe]
+        while notProcessedRecipes:
+            currentRecipe = notProcessedRecipes.pop()
+            for aspectInRecipe in map(lambda name: self.getAspectByName(name), currentRecipe):
+                nextRecipe = self.getAspectRecipeByName(aspectInRecipe.name)
+
+                if not aspectInRecipe.count:
+                    aspectInRecipe.count = 0
+                mixingTimes = targetCount - aspectInRecipe.count
+
+                if (len(nextRecipe)): # Not basic aspect
+                    notProcessedRecipes.append(nextRecipe)
+                    mixingStack.append(aspectInRecipe)
+                    if totalMixingForAspect.get(aspectInRecipe.name):
+                        totalMixingForAspect[aspectInRecipe.name] += mixingTimes
+                    else:
+                        totalMixingForAspect[aspectInRecipe.name] = mixingTimes
+                else:
+                    if totalCostBasicAspects.get(aspectInRecipe.name):
+                        totalCostBasicAspects[aspectInRecipe.name] += mixingTimes
+                    else:
+                        totalCostBasicAspects[aspectInRecipe.name] = mixingTimes
+
+                    if totalCostBasicAspects[aspectInRecipe.name] > aspectInRecipe.count:
+                        return False
+
+        while mixingStack:
+            aspectRecipe = mixingStack.pop()
+            mixingTimes = totalMixingForAspect[aspectRecipe.name]
+            totalMixingForAspect[aspectRecipe.name] = 0
+
+            if (mixingTimes > 0):
+                aspect1, aspect2 = map(lambda name: self.getAspectByName(name), self.getAspectRecipeByName(aspectRecipe.name))
+                self.takeAspectByCellCoords(aspect1.cellX, aspect1.cellY, aspect1.rectAspectsNumber)
+                aspect2_point = self.inventoryCellCoordsToPixelCoords(aspect2.cellX, aspect2.cellY, aspect2.rectAspectsNumber)
+                eventsDelay()
+                for _ in range(mixingTimes-1):
+                    aspect2_point.click('right')
+                    eventsDelay()
+                aspect2_point.release()
+                eventsDelay()
+
+                # Updating counts of aspects
+                aspectRecipe.count += mixingTimes
+                # print(f"{aspectRecipe.name}={aspectRecipe.count} {aspectRecipe.name}={self.getAspectByName(aspectRecipe.name).count}")
+                aspect1.count -= mixingTimes
+                aspect2.count -= mixingTimes
+                # print(f"{aspect1.name}={aspect1.count} {aspect1.name}={self.getAspectByName(aspect1.name).count}")
+                # print(f"{aspect2.name}={aspect2.count} {aspect2.name}={self.getAspectByName(aspect2.name).count}")
+
+        return True
+
+        # aspect1 = self.getAspectByName(recipe[0])
+        # aspect2 = self.getAspectByName(recipe[1])
+
+        # # Creating aspects used in recipe so that they don't run out
+        # self.mixAspect(aspect1, mixingTimes)
+        # self.mixAspect(aspect2, mixingTimes)
 
         # v GTHN v #
 
-        
-        self.takeAspectByCellCoords(aspect1.cellX, aspect1.cellY, aspect1.rectAspectsNumber)
-        aspect2_point = self.inventoryCellCoordsToPixelCoords(aspect2.cellX, aspect2.cellY, aspect2.rectAspectsNumber)
-        eventsDelay()
-        for _ in range(mixingTimes-1):
-            aspect2_point.click('right')
-            eventsDelay()
-        aspect2_point.release()
-        eventsDelay()
+        # self.takeAspectByCellCoords(aspect1.cellX, aspect1.cellY, aspect1.rectAspectsNumber)
+        # aspect2_point = self.inventoryCellCoordsToPixelCoords(aspect2.cellX, aspect2.cellY, aspect2.rectAspectsNumber)
+        # eventsDelay()
+        # for _ in range(mixingTimes-1):
+        #     aspect2_point.click('right')
+        #     eventsDelay()
+        # aspect2_point.release()
+        # eventsDelay()
 
-        # ^ GTNH ^ #
+        # # ^ GTNH ^ #
 
-        # Updating counts of aspects
-        aspect.count += mixingTimes
-        aspect1.count -= mixingTimes
-        aspect2.count -= mixingTimes
+        # # Updating counts of aspects
+        # aspect.count += mixingTimes
+        # aspect1.count -= mixingTimes
+        # aspect2.count -= mixingTimes
 
 
     def fillByLinkMap(self, aspectsMap: dict[(int, int), str]):

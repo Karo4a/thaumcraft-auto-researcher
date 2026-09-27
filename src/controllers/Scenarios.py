@@ -557,6 +557,54 @@ def detectionAspectsDialogue(UI : OverlayUI, TI : ThaumInteractor):
     cellColorFree.setAlpha(50)
     # draw clickable cells
     cellsObjects = []
+    openAllAspectsButton = Text(
+        20,
+        260,
+        "Открыть все аспекты",
+        color=QColor('white'),
+        withBackground=True,
+        padding=MARGIN,
+        UI=UI,
+        hoverable=True,
+        clickable=True,
+        onClickCallback=openAllAspects,
+        onClickCallbackArgs=[UI, TI],
+    )
+    UI.addObject(openAllAspectsButton)
+
+    onPausedText = UI.addObject(Text(
+        MARGIN, MARGIN,
+        f"""Программа приостановлена.
+
+Чтобы продолжить работу, нажми [Ctrl + Shift + Пробел]""",
+        color=QColor('white'),
+        withBackground=True,
+        padding=MARGIN,
+        movable=True,
+        UI=UI,
+    ))
+    onPausedText.setVisibility(False)
+    pausedStateDialogueObjects = [onPausedText]
+    activeStateDialogueObjects = [mainText, nextButton, backButton, openAllAspectsButton]
+
+    def switchToActiveState():
+        logging.info("Switching to active state")
+
+        UI.clearKeyCallbacks()
+        UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], switchToPausedState)
+        UI.setAllObjectsVisibility(False)
+        UI.setObjectsVisibility(activeStateDialogueObjects, True)
+        UI.setObjectsVisibility(cellsObjects, True)
+        exitButton.setVisibility(True)
+
+    def switchToPausedState():
+        logging.info("Switching to paused state")
+        UI.clearKeyCallbacks()
+        UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], switchToActiveState)
+        UI.setAllObjectsVisibility(False)
+        UI.setObjectsVisibility(pausedStateDialogueObjects, True)
+
+    UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], switchToPausedState)
 
     def updateCurrentAspectData():
         logging.info(f"Current aspect data updated on screen. Aspect: {currentAspect[0]}")
@@ -876,6 +924,18 @@ def detectionAspectsDialogue(UI : OverlayUI, TI : ThaumInteractor):
         UI.setKeyCallback([KeyboardKeys.esc], cancelAspectChanges)
         UI.setKeyCallback([KeyboardKeys.enter], confirmAspectChanges)
     logging.info(f"UI to change detected aspects in inventory shown")
+
+def openAllAspects(UI: OverlayUI, TI: ThaumInteractor):
+    UI.clearAll()
+    UI.repaint()
+    exitButtonObject = UI.createExitButton()
+
+    setAvailableAspectNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
+    for result, recipe in zip(TI.allAspects, map(lambda aspect: TI.getAspectRecipeByName(aspect.name), TI.allAspects)):
+        if recipe and result.name not in setAvailableAspectNames and set(recipe).issubset(setAvailableAspectNames):
+            TI.mixAspect(result, 1)
+
+    TI.updateAvailableAspectsInInventory(detectionAspectsDialogue, [UI, TI])
 
 def runResearching(UI: OverlayUI, TI: ThaumInteractor):
     logging.info(f"Run researching scenario started")

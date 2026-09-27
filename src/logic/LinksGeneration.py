@@ -83,7 +83,7 @@ class AspectGraph:
 
 class Aspect:
     name: str
-    coord: (int, int)
+    coord: tuple[int, int]
     linked_to_initials: set
 
     def __init__(self, name, coord, linked_to_initials):
@@ -101,7 +101,7 @@ class Aspect:
         class PathElement:
             path: list[(int, int)]
             dist: int = DEFAULT_INITIAL_PATH_LEN
-            coord: (int, int)
+            coord: tuple[int, int]
             def __init__(self, x: int, y: int):
                 self.coord = (x, y)
                 self.path = []
