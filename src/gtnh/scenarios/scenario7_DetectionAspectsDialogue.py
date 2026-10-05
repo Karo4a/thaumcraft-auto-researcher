@@ -62,17 +62,28 @@ def detectionAspectsDialogue(UI, TI):
     pausedStateDialogueObjects = [onPausedText]
     activeStateDialogueObjects = [mainText, nextButton, backButton, openAllAspectsButton, exitButton]
     pauseStateFlag = [False]
+    savedKeysCallbacks = []
+    currentSubState = ['main']
 
     def switchToActiveState():
         logging.info("Switching to active state")
         pauseStateFlag[0] = False
+        UI.clearKeyCallbacks()
+        if savedKeysCallbacks:
+            UI.keysCallbacks = savedKeysCallbacks.pop()
         UI.safeSetAllObjectsVisibility(False)
-        UI.safeSetObjectsVisibility(activeStateDialogueObjects, True)
-        UI.safeSetObjectsVisibility(cellsObjects, True)
+        if currentSubState[0] == 'cell':
+            UI.safeSetObjectsVisibility(cellDialogueObjects, True)
+        else:
+            UI.safeSetObjectsVisibility(activeStateDialogueObjects, True)
+            UI.safeSetObjectsVisibility(cellsObjects, True)
 
     def switchToPausedState():
         logging.info("Switching to paused state")
         pauseStateFlag[0] = True
+        savedKeysCallbacks.append(dict(UI.keysCallbacks))
+        UI.clearKeyCallbacks()
+        UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], togglePauseState)
         UI.safeSetAllObjectsVisibility(False)
         UI.safeSetObjectsVisibility(pausedStateDialogueObjects, True)
 
@@ -311,11 +322,13 @@ def detectionAspectsDialogue(UI, TI):
     # --- Switch states functions
     def switchToMainDialogue():
         logging.info(f"Switching to a main change inventory apsects dialogue...")
+        currentSubState[0] = 'main'
         UI.setObjectsVisibility(cellDialogueObjects, False)
         UI.setObjectsVisibility(mainDialogueObjects, True)
         drawAspects()
     def switchToCellDialogue():
         logging.info(f"Switching to a directly change aspect dialogue...")
+        currentSubState[0] = 'cell'
         UI.removeObjects(cellsObjects)
         UI.setObjectsVisibility(mainDialogueObjects, False)
         UI.setObjectsVisibility(cellDialogueObjects, True)

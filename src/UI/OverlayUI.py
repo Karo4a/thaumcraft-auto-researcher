@@ -160,11 +160,15 @@ class _Window(QMainWindow):
                 return
             if event.event_type != keyboard.KEY_DOWN:
                 return
+            wasHoldingKeys = set(self.holdingKeys)
             self.holdingKeys.add(pressedKeyCode)
 
-            for keysCombination in self.keysCallbacks.keys():
-                if set(keysCombination).issubset(self.holdingKeys):
-                    self.keysCallbacks[keysCombination][0](*self.keysCallbacks[keysCombination][1])
+            # Fire a combination only on the press that completes it. Auto-repeat
+            # of an already-held key must not re-trigger the callback.
+            for keysCombination, (callback, args) in list(self.keysCallbacks.items()):
+                pressedCombination = set(keysCombination)
+                if pressedCombination.issubset(self.holdingKeys) and not pressedCombination.issubset(wasHoldingKeys):
+                    callback(*args)
 
         keyboard._listener.add_handler(onKeyboardEvent)
 
