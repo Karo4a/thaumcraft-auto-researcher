@@ -1,9 +1,13 @@
 from typing import Callable
 
+from configs.constants import DELAY_BETWEEN_EVENTS, DELAY_BETWEEN_RENDER
+
 
 class BaseEdition:
     id: str = "vanilla"
     displayName: str = "Thaumcraft"
+    delayBetweenEvents: float = DELAY_BETWEEN_EVENTS
+    delayBetweenRender: float = DELAY_BETWEEN_RENDER
 
     @property
     def scenarioOverrides(self) -> dict[str, Callable]:

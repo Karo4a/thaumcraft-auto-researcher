@@ -1,6 +1,5 @@
 import logging
 import math
-import time
 from typing import Callable
 
 from PIL import Image
@@ -12,15 +11,11 @@ from controllers.Aspect import Aspect
 from controllers.Point import P
 from controllers.ThaumInteractor import ThaumInteractor
 from gtnh.aspect import GtnhAspect
-from gtnh.constants import THAUM_ASPECTS_INVENTORY_SLOTS_X, \
-    THAUM_ASPECTS_INVENTORY_SLOTS_Y, DELAY_BETWEEN_EVENTS
+from gtnh.constants import THAUM_ASPECTS_INVENTORY_SLOTS_X, THAUM_ASPECTS_INVENTORY_SLOTS_Y
 from gtnh.mixing import planMixing
 from gtnh.recognition import aspects_count, filterByMaxConfidence, splitAspectsAndDigits
 from logic.Neurolink import Neurolink, ObjectPrediction
-
-
-def eventsDelay():
-    time.sleep(DELAY_BETWEEN_EVENTS)
+from utils.utils import eventsDelay
 
 
 class GtnhThaumInteractor(ThaumInteractor):

@@ -3,6 +3,8 @@ import os
 import sys
 
 from editions.base import BaseEdition
+from gtnh.constants import DELAY_BETWEEN_EVENTS as GTNH_DELAY_BETWEEN_EVENTS, \
+    DELAY_BETWEEN_RENDER as GTNH_DELAY_BETWEEN_RENDER
 
 
 def _dataPath(relativePath: str) -> str:
@@ -18,6 +20,8 @@ def _loadJson(relativePath: str) -> dict:
 class GtnhEdition(BaseEdition):
     id = "gtnh"
     displayName = "GTNH"
+    delayBetweenEvents = GTNH_DELAY_BETWEEN_EVENTS
+    delayBetweenRender = GTNH_DELAY_BETWEEN_RENDER
 
     @property
     def scenarioOverrides(self) -> dict:

@@ -5,8 +5,6 @@ import time
 
 from PIL import Image
 
-from configs.constants import DELAY_BETWEEN_EVENTS, DELAY_BETWEEN_RENDER
-
 
 def distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
@@ -79,12 +77,22 @@ def getImagesDiffPercent(image1: Image.Image, image2: Image.Image, masks: list[I
     return percentDiff
 
 
+def eventsDelaySeconds() -> float:
+    from editions import getEdition
+    return getEdition().delayBetweenEvents
+
+
+def renderDelaySeconds() -> float:
+    from editions import getEdition
+    return getEdition().delayBetweenRender
+
+
 def eventsDelay():
-    time.sleep(DELAY_BETWEEN_EVENTS)
+    time.sleep(eventsDelaySeconds())
 
 
 def renderDelay():
-    time.sleep(DELAY_BETWEEN_RENDER)
+    time.sleep(renderDelaySeconds())
 
 
 def loadImage(

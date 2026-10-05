@@ -18,9 +18,9 @@ from configs.constants import INVENTORY_SLOTS_X, INVENTORY_SLOTS_Y, THAUM_ASPECT
     IMAGES_TOLERANCE_PERCENT, \
     DEBUG, PAINT_DEBUG, \
     UNKNOWN_ASPECT_IMAGE_PATH, NEUROLINK_FREE_HEXAGON_PREDICTION_NAME, \
-    NEUROLINK_SCRIPT_IMAGE_PREDICTION_NAME, DELAY_BETWEEN_RENDER, DELAY_BETWEEN_EVENTS
+    NEUROLINK_SCRIPT_IMAGE_PREDICTION_NAME
 from configs.constants import getAspectImagePath
-from utils.utils import getImagesDiffPercent, eventsDelay, renderDelay
+from utils.utils import getImagesDiffPercent, eventsDelay, renderDelay, eventsDelaySeconds, renderDelaySeconds
 from utils import AppState
 
 
@@ -205,7 +205,7 @@ class ThaumInteractor:
         eventsDelay()
         clickCircle = Circle(point.x, point.y, 20, color=color)
 
-        timeToLeave = DELAY_BETWEEN_RENDER / 2 * 1000  # ms
+        timeToLeave = renderDelaySeconds() / 2 * 1000  # ms
         circleRadius = 20
 
         def onTimeCallback(timeLeft):
@@ -587,14 +587,14 @@ class ThaumInteractor:
                 logging.info(f"New aspects page total width: {newAdditionalOffset}")
 
                 if newAdditionalOffset > 0:
-                    self.UI.setTimeout(DELAY_BETWEEN_EVENTS, detectionIteration,
+                    self.UI.setTimeout(eventsDelaySeconds(), detectionIteration,
                                        [isFoundEndOfInventory, newAdditionalOffset])
                 else:
                     exitWithSort()
 
-            self.UI.setTimeout(DELAY_BETWEEN_EVENTS, detectionIteration)
+            self.UI.setTimeout(eventsDelaySeconds(), detectionIteration)
 
-        self.UI.setTimeout(DELAY_BETWEEN_EVENTS, detectAspects)
+        self.UI.setTimeout(eventsDelaySeconds(), detectAspects)
 
     def logAvailableAspects(self):
         string = "All available aspects by columns:"
