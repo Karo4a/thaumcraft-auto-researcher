@@ -15,7 +15,7 @@ from gtnh.constants import THAUM_ASPECTS_INVENTORY_SLOTS_X, THAUM_ASPECTS_INVENT
 from gtnh.mixing import planMixing
 from gtnh.recognition import aspects_count, filterByMaxConfidence, splitAspectsAndDigits
 from logic.Neurolink import Neurolink, ObjectPrediction
-from utils.utils import eventsDelay
+from utils.utils import eventsDelay, renderDelay
 
 
 class GtnhThaumInteractor(ThaumInteractor):
@@ -203,6 +203,11 @@ class GtnhThaumInteractor(ThaumInteractor):
     def updateAvailableAspectsInInventory(self, onFinishCallback: Callable, callbackArgs=[]):
         logging.info("Detecting available aspects in inventory... (GTNH)")
         self.availableAspects = []
+
+        # Move the cursor away from aspect slots: a hover tooltip would overlap
+        # neighbouring aspects and corrupt the screenshot-based detection.
+        self.moveMouseInSafePos()
+        renderDelay()
 
         debugHighlightingRect = self._addDebugHighlightingRect()
         self.UI.repaint()

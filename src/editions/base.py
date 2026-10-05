@@ -35,3 +35,7 @@ class BaseEdition:
 
     def extraAddonsRecipes(self) -> dict:
         return {}
+
+    def includeBaseAddonRecipes(self) -> bool:
+        """Whether the shared addons recipe file applies to this edition."""
+        return True

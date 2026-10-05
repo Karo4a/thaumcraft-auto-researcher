@@ -12,6 +12,7 @@ from controllers import Scenarios
 from controllers.Scenarios.shared import createNextBackButtonsAndText, createButtonsAndText
 from configs.constants import MARGIN
 from gtnh.constants import RECT_ASPECTS_NUMBERS, THAUM_ASPECTS_INVENTORY_SLOTS_X, THAUM_ASPECTS_INVENTORY_SLOTS_Y
+from gtnh.mixing import selectCraftableAspects
 from utils import AppState
 
 
@@ -361,18 +362,40 @@ def openAllAspects(UI, TI):
     )
     UI.addObject(onProcessText)
 
-    def mixAllAspects():
-        try:
-            setAvailableAspectNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
-            for result in TI.allAspects:
-                recipe = TI.getAspectRecipeByName(result.name)
-                if recipe and result.name not in setAvailableAspectNames and set(recipe).issubset(setAvailableAspectNames):
-                    if not TI.mixAspect(result, 1):
-                        logging.warning(f"Could not mix aspect {result.name} while opening all aspects")
-        except Exception:
-            logging.exception("Error while opening all aspects")
-        finally:
-            UI.safeRemoveObject(onProcessText)
-            UI.setTimeout(0, TI.updateAvailableAspectsInInventory, [detectionAspectsDialogue, [UI, TI]])
+    initialNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
+    maxPasses = len(TI.allAspects) + 1
 
-    threading.Thread(target=mixAllAspects, daemon=True).start()
+    def finish(mixedTotal):
+        logging.info(f"Open all aspects finished. Mixed total: {mixedTotal}")
+        UI.safeRemoveObject(onProcessText)
+        detectionAspectsDialogue(UI, TI)
+
+    def runPass(passIndex, previousNames, mixedTotal):
+        def mixPass():
+            mixedThisPass = 0
+            try:
+                availableNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
+                craftableNames = selectCraftableAspects(
+                    [aspect.name for aspect in TI.allAspects], TI.recipes, availableNames)
+                logging.info(f"Open all aspects pass {passIndex}: craftable {craftableNames}")
+                for name in craftableNames:
+                    if TI.mixAspect(TI.getAspectByName(name), 1):
+                        mixedThisPass += 1
+                    else:
+                        logging.warning(f"Could not mix aspect {name} while opening all aspects")
+            except Exception:
+                logging.exception(f"Error while opening all aspects (pass {passIndex})")
+            finally:
+                UI.setTimeout(0, TI.updateAvailableAspectsInInventory,
+                              [afterDetection, [passIndex, previousNames, mixedTotal + mixedThisPass]])
+
+        threading.Thread(target=mixPass, daemon=True).start()
+
+    def afterDetection(passIndex, previousNames, mixedTotal):
+        currentNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
+        if passIndex < maxPasses and currentNames != previousNames:
+            runPass(passIndex + 1, currentNames, mixedTotal)
+        else:
+            finish(mixedTotal)
+
+    runPass(1, initialNames, 0)

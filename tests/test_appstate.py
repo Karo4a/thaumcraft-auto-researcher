@@ -80,6 +80,40 @@ class AppStateEditionTest(unittest.TestCase):
         AppState.rereadThaumVersion()
         self.assertEqual(AppState.selectedThaumVersion, "Some Version")
 
+    def test_edition_can_exclude_base_addons(self):
+        addonsPath = os.path.join(self.tmpdir.name, "addons.json")
+        with open(addonsPath, "w", encoding="utf-8") as file:
+            json.dump({"Base Addon": {"baseaddon": ["aer", "aqua"]}}, file)
+        origAddons = appstate_module.THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH
+        appstate_module.THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH = addonsPath
+        try:
+            class NoBaseAddonsEdition(FakeEdition):
+                def includeBaseAddonRecipes(self):
+                    return False
+
+            editions._currentEdition = NoBaseAddonsEdition()
+            AppState.rereadThaumVersion()
+            self.assertNotIn("Base Addon", AppState.allAddonsRecipes)
+            self.assertNotIn("baseaddon", AppState.aspectRecipes)
+            self.assertIn("Test Addon", AppState.allAddonsRecipes)
+            self.assertIn("testaddon", AppState.aspectRecipes)
+        finally:
+            appstate_module.THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH = origAddons
+
+    def test_base_addons_included_by_default(self):
+        addonsPath = os.path.join(self.tmpdir.name, "addons.json")
+        with open(addonsPath, "w", encoding="utf-8") as file:
+            json.dump({"Base Addon": {"baseaddon": ["aer", "aqua"]}}, file)
+        origAddons = appstate_module.THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH
+        appstate_module.THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH = addonsPath
+        try:
+            editions._currentEdition = FakeEdition()
+            AppState.rereadThaumVersion()
+            self.assertIn("Base Addon", AppState.allAddonsRecipes)
+            self.assertIn("baseaddon", AppState.aspectRecipes)
+        finally:
+            appstate_module.THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH = origAddons
+
     def test_unknown_edition_is_reset(self):
         path = os.path.join(self.tmpdir.name, "unknown_edition.json")
         with open(path, "w", encoding="utf-8") as file:

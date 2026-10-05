@@ -142,7 +142,10 @@ class _AppState:
             return
 
         # add all recipes for addons
-        self.allAddonsRecipes = readJSONConfig(THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH) or {}
+        if edition.includeBaseAddonRecipes():
+            self.allAddonsRecipes = readJSONConfig(THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH) or {}
+        else:
+            self.allAddonsRecipes = {}
         self.allAddonsRecipes |= edition.extraAddonsRecipes()
         for addonRecipes in self.allAddonsRecipes.values():
             self.aspectRecipes |= addonRecipes

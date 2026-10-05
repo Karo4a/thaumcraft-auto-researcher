@@ -59,6 +59,11 @@ class GtnhEdition(BaseEdition):
     def extraAddonsRecipes(self) -> dict:
         return _loadJson(os.path.join('aspects_configs', 'gtnhAddonsAspectsRecipes.json'))
 
+    def includeBaseAddonRecipes(self) -> bool:
+        # GTNH ships its own curated addons set; the shared addons file contains
+        # mods that are not part of GTNH (and would add unreachable aspects).
+        return False
+
 
 def createEdition():
     return GtnhEdition()

@@ -6,7 +6,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "src"))
 sys.path.insert(0, ROOT)
 
-from gtnh.mixing import planMixing
+from gtnh.mixing import planMixing, selectCraftableAspects
 
 
 class FakeAspect:
@@ -134,6 +134,34 @@ class MixingPlanTest(unittest.TestCase):
         plan = self._plan(aspects, "vacuos", 1)
         self.assertIsNotNone(plan)
         self.assertEqual(aspects["vacuos"].count, 0)
+
+
+class SelectCraftableAspectsTest(unittest.TestCase):
+    def test_returns_only_missing_craftable_in_order(self):
+        allNames = ["aer", "vacuos", "potentia", "praecantatio"]
+        available = {"aer", "perditio", "ordo", "ignis"}
+        self.assertEqual(
+            selectCraftableAspects(allNames, RECIPES, available),
+            ["vacuos", "potentia"],
+        )
+
+    def test_skips_already_available(self):
+        self.assertEqual(
+            selectCraftableAspects(["vacuos"], RECIPES, {"aer", "perditio", "vacuos"}),
+            [],
+        )
+
+    def test_skips_basics_and_missing_ingredients(self):
+        self.assertEqual(
+            selectCraftableAspects(["aer", "praecantatio"], RECIPES, {"vacuos", "ordo"}),
+            [],
+        )
+
+    def test_returns_deeper_aspect_when_ingredients_present(self):
+        self.assertEqual(
+            selectCraftableAspects(["praecantatio"], RECIPES, {"vacuos", "potentia"}),
+            ["praecantatio"],
+        )
 
 
 if __name__ == "__main__":

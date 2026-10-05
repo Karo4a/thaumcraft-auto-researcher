@@ -71,6 +71,13 @@ class GtnhEditionTest(unittest.TestCase):
         self.assertEqual(AppState.selectedThaumVersion, "GTNH")
         self.assertIn("evolutio", AppState.aspectRecipes)
 
+    def test_gtnh_excludes_base_addon_recipes(self):
+        editions.selectEdition("gtnh")
+        AppState.rereadThaumVersion()
+        self.assertNotIn("Magic Bees", AppState.allAddonsRecipes)
+        self.assertIn("Twist Space Technology", AppState.allAddonsRecipes)
+        self.assertIn("evolutio", AppState.aspectRecipes)
+
     def test_window_controls_delegation(self):
         edition = editions.selectEdition("gtnh")
         point = lambda x, y: SimpleNamespace(x=x, y=y)

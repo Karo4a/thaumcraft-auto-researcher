@@ -64,3 +64,19 @@ def planMixing(aspect: Any, targetCount: int,
         if times > 0:
             plan.append((aspectRecipe, times))
     return plan
+
+
+def selectCraftableAspects(allAspectNames: list[str], recipes: dict[str, list[str]],
+                           availableNames: set[str]) -> list[str]:
+    """
+    Возвращает имена аспектов (в порядке allAspectNames), которые сейчас можно скрафтить:
+    аспект ещё не открыт, у него есть рецепт, и оба ингредиента уже доступны.
+    """
+    craftable = []
+    for name in allAspectNames:
+        if name in availableNames:
+            continue
+        recipe = recipes.get(name)
+        if recipe and set(recipe).issubset(availableNames):
+            craftable.append(name)
+    return craftable
