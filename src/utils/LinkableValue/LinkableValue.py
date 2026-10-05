@@ -1,0 +1,65 @@
+from typing import Union
+
+
+class LinkableValue:
+    def __init__(self, val: float):
+        self.val = val
+
+    def __float__(self):
+        return float(self.val)
+
+    def __int__(self):
+        return int(self.val)
+
+    def __add__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val + other.val
+        return self.val + other
+
+    def __sub__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val - other.val
+        return self.val - other
+
+    def __mul__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val * other.val
+        return self.val * other
+
+    def __divmod__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val / other.val
+        return self.val / other
+
+    def __lt__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val < other.val
+        return self.val < other
+    def __le__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val <= other.val
+        return self.val <= other
+    def __gt__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val > other.val
+        return self.val > other
+    def __ge__(self, other):
+        if isinstance(other, LinkableValue):
+            return self.val >= other.val
+        return self.val >= other
+    def __repr__(self):
+        return str(self.val)
+    # def __st__(self):
+    #     return str(self.val)
+
+
+def editLinkableValue(oldVal: Union[float, LinkableValue], newVal: float) -> Union[float, LinkableValue]:
+    if isinstance(oldVal, LinkableValue):
+        oldVal.val = newVal
+        return oldVal
+    return newVal
+
+
+def linkableValueDumpsToJSON(obj):
+    if isinstance(obj, LinkableValue):
+        return obj.val

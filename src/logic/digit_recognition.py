@@ -1,4 +1,4 @@
-from src.logic.onnx_inference import ObjectPrediction
+from logic.onnx_inference import ObjectPrediction
 
 
 def is_digit(prediction: ObjectPrediction) -> bool:
@@ -39,7 +39,7 @@ def remove_same_spot_predictions(digit_predictions: list[ObjectPrediction]) -> l
 
 
 def group_aspects_and_digits(
-        predictionsAspect: list[ObjectPrediction], predictionsDigit: list[ObjectPrediction]
+        predictions: list[ObjectPrediction]
 ) -> list[tuple[ObjectPrediction, list[ObjectPrediction]]]:
     """
     Группирует цифры по аспектам, к которым цифра относится
@@ -47,21 +47,25 @@ def group_aspects_and_digits(
         Список пар (Предсказание аспекта, Список цифр, относящихся к этому аспекту)
     """
     result = []
-    for aspect_pred in predictionsAspect:
+    for aspect_pred in predictions:
+        if not is_aspect(aspect_pred):
+            continue
         aspect_digits = []
-        for digit_pred in predictionsDigit:
+        for digit_pred in predictions:
+            if not is_digit(digit_pred):
+                continue
             if prediction_inside_prediction(digit_pred, aspect_pred):
                 aspect_digits.append(digit_pred)
         result.append((aspect_pred, aspect_digits))
     return result
 
 
-def aspects_count(predictionsAspect: list[ObjectPrediction], predictionsDigit: list[ObjectPrediction]) -> dict[str, int]:
+def aspects_count(predictions: list[ObjectPrediction]) -> dict[str, int]:
     """
     Каждому аспекту подставляет его распознанное количество
     """
     counts = dict()
-    for aspect_pred, aspect_digits_pred in group_aspects_and_digits(predictionsAspect, predictionsDigit):
+    for aspect_pred, aspect_digits_pred in group_aspects_and_digits(predictions):
         aspect_digits_pred = remove_same_spot_predictions(aspect_digits_pred)
         aspect_digits_pred.sort(key=lambda pred: pred.x)
         number = 0
