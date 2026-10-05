@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "./main.py"
+   "value": "./src/main.py"
   },
   {
    "optionDest": "onefile",
@@ -59,7 +59,11 @@
   },
   {
    "optionDest": "datas",
-   "value": "./aspects_configs;aspects_configs/"
+   "value": "./configs/aspects_configs;configs/aspects_configs"
+  },
+  {
+   "optionDest": "datas",
+   "value": "./src/gtnh/data;gtnh/data"
   },
   {
    "optionDest": "datas",
@@ -71,7 +75,15 @@
   },
   {
    "optionDest": "pathex",
-   "value": "."
+   "value": "./src;./"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "editions.vanilla"
+  },
+  {
+   "optionDest": "hiddenimports",
+   "value": "gtnh"
   }
  ],
  "nonPyinstallerOptions": {

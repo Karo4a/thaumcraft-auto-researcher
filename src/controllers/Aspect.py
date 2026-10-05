@@ -3,8 +3,8 @@ import logging
 from PIL import Image
 from PyQt5.QtGui import QPixmap
 
-from src.utils.constants import getAspectImagePath, UNKNOWN_ASPECT_IMAGE_PATH
-from src.utils.utils import loadImage
+from configs.constants import getAspectImagePath, UNKNOWN_ASPECT_IMAGE_PATH
+from utils.utils import loadImage
 
 
 unknownAspectImage = loadImage(UNKNOWN_ASPECT_IMAGE_PATH)
@@ -19,14 +19,12 @@ class Aspect:
     count: int = None
     cellX: int | None
     cellY: int | None
-    rectAspectsNumber : int | None
 
-    def __init__(self, name: str, idx: int, cellX: int = None, cellY: int = None, rectAspectsNumber : int = None):
+    def __init__(self, name: str, idx: int, cellX: int = None, cellY: int = None):
         self.name = name
         self.uid = idx
         self.cellX = cellX
         self.cellY = cellY
-        self.rectAspectsNumber = rectAspectsNumber
 
         imagePath = getAspectImagePath(self.name)
         try:

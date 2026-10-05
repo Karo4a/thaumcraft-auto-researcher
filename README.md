@@ -1,8 +1,26 @@
-## [Download .exe releases](https://github.com/SergTyapkin/thaumcraft-auto-researcher/releases)
-[latest version `v1.2.0`](https://github.com/SergTyapkin/thaumcraft-auto-researcher/releases/tag/v1.2.0)
+[//]: # (![GithubCI]&#40;https://github.com/SergTyapkin/thaumcraft-auto-researcher/actions/workflows/auto-translate-readme.yml/badge.svg&#41;)
+
+[![](https://img.shields.io/badge/русский-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/russian_README.md)
+[![](https://img.shields.io/badge/english-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/english_README.md)
+[![](https://img.shields.io/badge/中文(简体)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/chinese%20(simplified)_README.md)
+[![](https://img.shields.io/badge/中文(传统)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/chinese%20(traditional)_README.md)
+[![](https://img.shields.io/badge/arabic(العربية)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/arabic_README.md)
+[![](https://img.shields.io/badge/español-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/spanish_README.md)
+[![](https://img.shields.io/badge/italiano-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/italian_README.md)
+[![](https://img.shields.io/badge/Deutsch-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/dutch_README.md)
+[![](https://img.shields.io/badge/hindi(हिन्दी)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/hindi_README.md)
+[![](https://img.shields.io/badge/korean(한국어)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/korean_README.md)
+
+---
+
+# Автоматический исследователь для Thaumcraft 4
+
+[![Download latest .exe](https://dabuttonfactory.com/button.png?t=Download+latest++.exe&f=Open+Sans-Bold&ts=20&tc=fff&w=300&h=60&c=round&bgt=gradient&bgc=6B6BFF&ebgc=BB8EFF)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/releases/tag/v1.2.1)
+<br> [![see all releases](https://dabuttonfactory.com/button.png?t=see+all+releases&f=Open+Sans-Bold-Italic&ts=12&tc=fff&w=300&h=16&c=round&bgt=gradient&bgc=2B8F3B&ebgc=5BBB3F)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/releases)
 <details>
 <summary>Changelog:</summary>
 
+- Добавлена поддержка различных языков внутри программы
 - Конфиги сохраняются в AppData. При перезапуске больше не надо заново конфигурировать приложение
 - Теперь нейросеть определяет аспекты на столе!
 Скорость исследований благодаря этому увеличилась более чем в 10 раз.
@@ -19,31 +37,13 @@
 > `v0._._` - дорелизные MVP версии
 </details>
 
----
-
-![GithubCI](https://github.com/SergTyapkin/thaumcraft-auto-researcher/actions/workflows/auto-translate-readme.yml/badge.svg)
-
-[![](https://img.shields.io/badge/русский-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/russian_README.md)
-[![](https://img.shields.io/badge/english-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/english_README.md)
-[![](https://img.shields.io/badge/中文(简体)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/chinese%20(simplified)_README.md)
-[![](https://img.shields.io/badge/中文(传统)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/chinese%20(traditional)_README.md)
-[![](https://img.shields.io/badge/arabic(العربية)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/arabic_README.md)
-[![](https://img.shields.io/badge/español-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/spanish_README.md)
-[![](https://img.shields.io/badge/italiano-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/italian_README.md)
-[![](https://img.shields.io/badge/Deutsch-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/dutch_README.md)
-[![](https://img.shields.io/badge/hindi(हिन्दी)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/hindi_README.md)
-[![](https://img.shields.io/badge/korean(한국어)-_?style=for-the-badge&logo=readme&color=white)](https://github.com/SergTyapkin/thaumcraft-auto-researcher/blob/README_TRANSLATIONS/korean_README.md)
-
----
-
-# Автоматический исследователь для Thaumcraft 4
 > _**Thaumcraft**_ - мод для игры _Minecraft_, часто устанавливающийся в магические сборки модов на популярных серверах
 
 Программа с помощью двух нейросетей для определения аспектов на экране **алгоритмически решает и раскладывает** записки исследований в столе исследований.
-Весь интерфейс взаимодействия полупрозрачный и показывается поверх всех окон.
+Весь интерфейс взаимодействия полупрозрачный и показывается поверх окна игры.
 
 Программа **никак** не взаимодействует с кодом игры и не определяется античитами. 
-Все что она делает - это смотрит на **пиксели на экране**, нейросетями определяет, какие аспекты есть на экране, и имитирует **действия мышью и клавиатурой**, как если бы это делал человек.
+Все что она делает - это смотрит на **пиксели на экране**, нейросетями определяет, какие аспекты есть на экране, и **имитирует действия мышью и клавиатурой**, как если бы это делал человек.
 
 > [!IMPORTANT]
 > По любым вопросам, ошибкам и предложениям пишите: [t.me/Tyapkin_S](https://t.me/tyapkin_s)
@@ -147,20 +147,28 @@ https://github.com/user-attachments/assets/a2eaa3b7-c7fe-4fbc-9905-1b19a32d498f
 pip install -r requirements.txt
 ```
 
-2. Добавить папку src проекта в PYTHONPATH:
-Windows:
-```cmd
-set "PYTHONPATH=$($CWD);$($PYTHONPATH)"
+2. Запуск из корня проекта (требуется версия `Python 3.12` или выше, PYTHONPATH не требуется):
+```shell
+py -3.12 src\main.py
 ```
--Unix:
-```cmd
-export PYTHONPATH=$(cwd):$PYTHONPATH
+или
+```shell
+py -3.12 -m src.main
+```
+или через точку входа в корне (удобно для кнопки Run в VS Code):
+```shell
+py -3.12 main.py
 ```
 
-3. Запуск из корня проекта (требуется версия `Python 3.10` или выше):
+3. Выбор режима (edition):
+- при первом запуске программа предложит выбрать режим: `Thaumcraft` (оригинальный мод) или `GTNH`;
+- выбор сохраняется в AppData и используется при следующих запусках;
+- переопределить режим для текущего запуска можно флагом:
 ```shell
-python -m src.main
+py -3.12 src\main.py --edition gtnh
 ```
+- у режимов раздельная конфигурация окна: GTNH использует свой файл контролов, старый конфиг из GTNH-форка автоматически не импортируется — настройте окно заново при первом запуске режима;
+- при смене режима сохранённая версия Thaum, не подходящая новому режиму, сбрасывается, и программа попросит выбрать версию заново.
 
 ---
 ## Сборка приложения в .exe файл
