@@ -35,6 +35,7 @@ RECIPES = {
 
 def makeInteractor():
     interactorModule.eventsDelay = lambda: None
+    interactorModule.renderDelay = lambda: None
     ti = GtnhThaumInteractor.__new__(GtnhThaumInteractor)
     ti.recipes = RECIPES
     ti.allAspects = []
@@ -134,6 +135,7 @@ class GtnhInteractorMixTest(unittest.TestCase):
         ti.rectAspectsListingLT2 = SimpleNamespace(x=100, y=0)
         ti.rectAspectsListingRB2 = SimpleNamespace(x=140, y=90)
         ti.availableAspects = []
+        ti.moveMouseInSafePos = lambda: None
         ti.UI = SimpleNamespace(repaint=lambda: None, removeObject=lambda obj: None)
         ti.takeScreenshot = lambda *args, **kwargs: None
         ti._addDebugHighlightingRect = lambda *args, **kwargs: None
