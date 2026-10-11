@@ -1,6 +1,10 @@
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from configs.constants import DELAY_BETWEEN_EVENTS, DELAY_BETWEEN_RENDER
+
+if TYPE_CHECKING:
+    from controllers.ThaumInteractor import ThaumInteractor
+    from UI.OverlayUI import OverlayUI
 
 
 class BaseEdition:
@@ -17,7 +21,8 @@ class BaseEdition:
         """None means 'no extra restriction' (validate against the loaded recipe map)."""
         return None
 
-    def createTI(self, UI: Any, noPointsConfigCallback: Callable, noSelectedVersionCallback: Callable) -> Any:
+    def createTI(self, UI: "OverlayUI", noPointsConfigCallback: Callable[["OverlayUI"], None],
+                 noSelectedVersionCallback: Callable[["OverlayUI"], None]) -> "ThaumInteractor | None":
         from controllers.ThaumInteractor import _createTIDefault
         return _createTIDefault(UI, noPointsConfigCallback, noSelectedVersionCallback)
 

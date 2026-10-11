@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QPainter, QFont
@@ -8,6 +8,9 @@ from UI.primitives.Point import Point
 from UI.primitives.Rect import opacityToAlpha
 from UI.primitives.values import DEFAULT_FONT, DEFAULT_COLOR, DEFAULT_PADDING
 from utils.LinkableValue import editLinkableValue, LinkableValue
+
+if TYPE_CHECKING:
+    from UI.OverlayUI import OverlayUI
 
 
 class Align(int):
@@ -35,7 +38,7 @@ class Text(_Object):
             hoverable: bool = False,
             hoverColor: QColor = None,
             onMoveCallback: Callable = None,
-            UI: Any = None,
+            UI: "OverlayUI | None" = None,
             onClickCallback: Callable = None,
             onClickCallbackArgs: list[Any] = [],
             clickable: bool = None) -> None:

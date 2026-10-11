@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from logic.onnx_inference import ObjectPrediction
 
 
-def is_digit(prediction: "ObjectPrediction") -> bool:
+def is_digit(prediction: ObjectPrediction) -> bool:
     return prediction.predictionName in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 
-def is_aspect(prediction: "ObjectPrediction") -> bool:
+def is_aspect(prediction: ObjectPrediction) -> bool:
     return not is_digit(prediction)
 
 
-def prediction_inside_prediction(pred_inner: Any, pred_outer: Any) -> bool:
+def prediction_inside_prediction(pred_inner: ObjectPrediction, pred_outer: ObjectPrediction) -> bool:
     """True, если pred_inner находится внутри pred_outer"""
     x_min = pred_outer.x - pred_outer.width // 2
     x_max = pred_outer.x + pred_outer.width // 2
@@ -25,7 +25,7 @@ def prediction_inside_prediction(pred_inner: Any, pred_outer: Any) -> bool:
 
 # Слияние кластеров якорное (prev_x не обновляется при замене result[-1]) — это осознанный
 # parity-порт master: аспекты-дубли могут остаться, но поведение совпадает с GTNH-веткой.
-def remove_same_spot_predictions(digit_predictions: list) -> list:
+def remove_same_spot_predictions(digit_predictions: list[ObjectPrediction]) -> list[ObjectPrediction]:
     """
     Для случаев, когда на одну цифру приходится несколько предсказаний, расположенных примерно в одном месте.
     Убирает лишние предсказания, оставляя только самые уверенные
@@ -44,7 +44,7 @@ def remove_same_spot_predictions(digit_predictions: list) -> list:
     return result
 
 
-def splitAspectsAndDigits(predictions: list) -> tuple[list, list]:
+def splitAspectsAndDigits(predictions: list[ObjectPrediction]) -> tuple[list[ObjectPrediction], list[ObjectPrediction]]:
     aspects = []
     digits = []
     for prediction in predictions:
@@ -55,7 +55,7 @@ def splitAspectsAndDigits(predictions: list) -> tuple[list, list]:
     return aspects, digits
 
 
-def filterByMaxConfidence(predictions: list) -> list:
+def filterByMaxConfidence(predictions: list[ObjectPrediction]) -> list[ObjectPrediction]:
     filteredAspects = {}
     for prediction in predictions:
         aspect = filteredAspects.get(prediction.predictionName)
@@ -64,7 +64,10 @@ def filterByMaxConfidence(predictions: list) -> list:
     return list(filteredAspects.values())
 
 
-def group_aspects_and_digits(predictionsAspect: list, predictionsDigit: list) -> list[tuple]:
+def group_aspects_and_digits(
+        predictionsAspect: list[ObjectPrediction],
+        predictionsDigit: list[ObjectPrediction],
+) -> list[tuple[ObjectPrediction, list[ObjectPrediction]]]:
     result = []
     for aspect_pred in predictionsAspect:
         aspect_digits = []
@@ -75,7 +78,7 @@ def group_aspects_and_digits(predictionsAspect: list, predictionsDigit: list) ->
     return result
 
 
-def aspects_count(predictionsAspect: list, predictionsDigit: list) -> dict[str, int]:
+def aspects_count(predictionsAspect: list[ObjectPrediction], predictionsDigit: list[ObjectPrediction]) -> dict[str, int]:
     """
     Каждому аспекту подставляет его распознанное количество.
     Вызывать после filterByMaxConfidence: дубли одного аспекта перезаписываются (последний побеждает).

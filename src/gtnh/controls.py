@@ -1,8 +1,11 @@
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
 from configs.constants import to_appdata_path
 from utils.AppState import readJSONConfig, saveJSONConfig
+
+if TYPE_CHECKING:
+    from controllers.Point import P
 
 GTNH_THAUM_CONTROLS_CONFIG_PATH: str = to_appdata_path('user_configs/gtnhThaumControlsConfig.json')
 
@@ -11,10 +14,10 @@ def readGtnhThaumWindowControls(path: str | None = None) -> dict | None:
     return readJSONConfig(path or GTNH_THAUM_CONTROLS_CONFIG_PATH)
 
 
-def saveGtnhThaumWindowControls(pointWritingMaterials: Any, pointPapers: Any,
-                                rectAspectsListingLT: Any, rectAspectsListingRB: Any,
-                                rectAspectsListingLT2: Any, rectAspectsListingRB2: Any,
-                                rectInventoryLT: Any, rectInventoryRB: Any, rectHexagonsCC: Any,
+def saveGtnhThaumWindowControls(pointWritingMaterials: "P", pointPapers: "P",
+                                rectAspectsListingLT: "P", rectAspectsListingRB: "P",
+                                rectAspectsListingLT2: "P", rectAspectsListingRB2: "P",
+                                rectInventoryLT: "P", rectInventoryRB: "P", rectHexagonsCC: "P",
                                 hexagonSlotSizeY: float, path: str | None = None) -> None:
     saveJSONConfig(path or GTNH_THAUM_CONTROLS_CONFIG_PATH, {
         "pointWritingMaterials": {"x": pointWritingMaterials.x, "y": pointWritingMaterials.y},

@@ -12,9 +12,9 @@ class _NeurolinkClass:
     inventory_aspects_model: OnnxObjectDetection
 
     # Make it singleton
-    _instances: dict[type, Any] = {}
+    _instances: dict[type, "_NeurolinkClass"] = {}
 
-    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
+    def __call__(cls, *args: Any, **kwargs: Any) -> "_NeurolinkClass":
         if cls not in cls._instances:
             cls._instances[cls] = super(_NeurolinkClass, cls).__call__(*args, **kwargs)
         return cls._instances[cls]

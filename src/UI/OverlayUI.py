@@ -98,16 +98,16 @@ class TimedEvent:
 
 class _Window(QMainWindow):
     # Сигналы для безопасного обновления GUI из других потоков
-    sig_repaint: Any = pyqtSignal()
-    sig_setAllObjectsVisibility: Any = pyqtSignal(bool)
-    sig_setObjectsVisibility: Any = pyqtSignal(list, bool)
-    sig_addObject: Any = pyqtSignal(object)
-    sig_removeObject: Any = pyqtSignal(object)
-    sig_removeObjects: Any = pyqtSignal(list)
-    sig_clear: Any = pyqtSignal()
-    sig_clearKeyCallbacks: Any = pyqtSignal()
-    sig_clearMouseCallbacks: Any = pyqtSignal()
-    sig_exit: Any = pyqtSignal()
+    sig_repaint: pyqtSignal = pyqtSignal()
+    sig_setAllObjectsVisibility: pyqtSignal = pyqtSignal(bool)
+    sig_setObjectsVisibility: pyqtSignal = pyqtSignal(list, bool)
+    sig_addObject: pyqtSignal = pyqtSignal(object)
+    sig_removeObject: pyqtSignal = pyqtSignal(object)
+    sig_removeObjects: pyqtSignal = pyqtSignal(list)
+    sig_clear: pyqtSignal = pyqtSignal()
+    sig_clearKeyCallbacks: pyqtSignal = pyqtSignal()
+    sig_clearMouseCallbacks: pyqtSignal = pyqtSignal()
+    sig_exit: pyqtSignal = pyqtSignal()
 
     objects: list[UIPrimitive] = []
     keysCallbacks: dict[tuple[int], tuple[Callable, list[Any]]] = {}

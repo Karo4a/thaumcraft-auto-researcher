@@ -12,9 +12,9 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
 
 
 class Singleton(type):
-    _instances: dict[type, Any] = {}
+    _instances: dict[type, object] = {}
 
-    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
+    def __call__(cls, *args: Any, **kwargs: Any) -> object:
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]

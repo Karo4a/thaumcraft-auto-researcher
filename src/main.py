@@ -18,7 +18,7 @@ from utils import AppState
 from utils.utils import createDirByFilePath
 
 createDirByFilePath(LOG_FILE_PATH)
-loggingHandlers: list[logging.Handler] = [logging.handlers.RotatingFileHandler(filename=LOG_FILE_PATH, maxBytes=MAX_LOG_FILE_SIZE_BYTES, backupCount=MAX_LOG_FILES_COUNT)]
+loggingHandlers: list[logging.Handler] = [RotatingFileHandler(filename=LOG_FILE_PATH, maxBytes=MAX_LOG_FILE_SIZE_BYTES, backupCount=MAX_LOG_FILES_COUNT)]
 if DEBUG:
     loggingHandlers.append(logging.StreamHandler(sys.stdout))  # output both to console and log-files
 logging.basicConfig(

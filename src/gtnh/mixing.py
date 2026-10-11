@@ -10,12 +10,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING, Callable
+
+if TYPE_CHECKING:
+    from controllers.Aspect import Aspect
 
 
-def planMixing(aspect: Any, targetCount: int,
-               getAspectByName: Callable[[str], Any],
-               getAspectRecipeByName: Callable[[str], list[str]]) -> Optional[list[tuple[Any, int]]]:
+def planMixing(aspect: Aspect, targetCount: int,
+               getAspectByName: Callable[[str], Aspect],
+               getAspectRecipeByName: Callable[[str], list[str]]) -> list[tuple[Aspect, int]] | None:
     """
     Строит план микса аспекта до targetCount снизу вверх (ингредиенты раньше результата).
     Возвращает список пар (аспект, количество миксов) или None, если микс невозможен.

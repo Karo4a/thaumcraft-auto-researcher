@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from configs.constants import LANGUAGE_CONFIG_PATH, THAUM_VERSION_CONFIG_PATH, THAUM_ASPECT_RECIPES_CONFIG_PATH, \
     THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH, THAUM_CONTROLS_CONFIG_PATH, THAUM_ASPECTS_ORDER_CONFIG_PATH, \
@@ -9,6 +9,9 @@ from configs.constants import LANGUAGE_CONFIG_PATH, THAUM_VERSION_CONFIG_PATH, T
 from configs.translations import TRANSLATIONS
 from utils.LinkableValue import linkableValueDumpsToJSON
 from utils.utils import createDirByFilePath
+
+if TYPE_CHECKING:
+    from controllers.Point import P
 
 
 def readJSONConfig(fullpath: str) -> dict | None:
@@ -169,12 +172,12 @@ class _AppState:
         from editions import getEdition
         getEdition().saveThaumWindowControls(*args, **kwargs)
 
-    def _saveVanillaThaumWindowControls(self, pointWritingMaterials: Any, pointPapers: Any, rectAspectsListingLT: Any,
-                                        rectAspectsListingRB: Any,
-                                        pointAspectsScrollLeft: Any, pointAspectsScrollRight: Any,
-                                        pointAspectsMixLeft: Any, pointAspectsMixCreate: Any, pointAspectsMixRight: Any,
-                                        rectInventoryLT: Any,
-                                        rectInventoryRB: Any, rectHexagonsCC: Any, hexagonSlotSizeY: float) -> None:
+    def _saveVanillaThaumWindowControls(self, pointWritingMaterials: "P", pointPapers: "P",
+                                        rectAspectsListingLT: "P", rectAspectsListingRB: "P",
+                                        pointAspectsScrollLeft: "P", pointAspectsScrollRight: "P",
+                                        pointAspectsMixLeft: "P", pointAspectsMixCreate: "P", pointAspectsMixRight: "P",
+                                        rectInventoryLT: "P",
+                                        rectInventoryRB: "P", rectHexagonsCC: "P", hexagonSlotSizeY: float) -> None:
         saveJSONConfig(THAUM_CONTROLS_CONFIG_PATH, {
             "pointWritingMaterials": {"x": pointWritingMaterials.x, "y": pointWritingMaterials.y},
             "pointPapers": {"x": pointPapers.x, "y": pointPapers.y},

@@ -2,11 +2,15 @@ import json
 import os
 import sys
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from editions.base import BaseEdition
 from gtnh.constants import DELAY_BETWEEN_EVENTS as GTNH_DELAY_BETWEEN_EVENTS, \
     DELAY_BETWEEN_RENDER as GTNH_DELAY_BETWEEN_RENDER
+
+if TYPE_CHECKING:
+    from controllers.ThaumInteractor import ThaumInteractor
+    from UI.OverlayUI import OverlayUI
 
 
 def _dataPath(relativePath: str) -> str:
@@ -39,7 +43,8 @@ class GtnhEdition(BaseEdition):
     def validVersionKeys(self) -> set[str] | None:
         return {"GTNH"}
 
-    def createTI(self, UI: Any, noPointsConfigCallback: Callable, noSelectedVersionCallback: Callable) -> Any:
+    def createTI(self, UI: "OverlayUI", noPointsConfigCallback: Callable[["OverlayUI"], None],
+                 noSelectedVersionCallback: Callable[["OverlayUI"], None]) -> "ThaumInteractor | None":
         from controllers.ThaumInteractor import _createTIDefault
         from gtnh.interactor import GtnhThaumInteractor
         return _createTIDefault(UI, noPointsConfigCallback, noSelectedVersionCallback,
