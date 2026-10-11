@@ -68,8 +68,6 @@ def createTI(
 
 
 class ThaumInteractor:
-    UI: OverlayUI = None
-
     workingInventorySlot: int = -1  # can be 0..26 (inventory 9x3)
     currentAspectsPageIdx: int | None = None  # Current aspects inventory page idx
     allAspects: list[Aspect] = []  # All aspects that for selected version and all known addons
