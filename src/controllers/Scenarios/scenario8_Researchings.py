@@ -1,6 +1,7 @@
 import logging
 import math
 import threading
+import time
 
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
@@ -17,6 +18,7 @@ from controllers.ThaumInteractor import ThaumInteractor
 from controllers import Scenarios
 from controllers.Scenarios.shared import createButtonsAndText
 from logic.LinksGeneration import generateLinkMap
+from utils.log_context import setResearch, resetSolve, incrementResearch, incrementSolve
 from configs.constants import MARGIN, LINK_GENERATION_MAX_TIME_MS, MAX_SOLVE_RETRIES, THAUM_HEXAGONS_SLOTS_COUNT, \
     DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL
 from utils.utils import renderDelay, eventsDelay
@@ -75,12 +77,15 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
 
     def updateSolving(interruptingFlag: list[bool] = [False]) -> None:
         logging.debug(f'Starts updating solve...')
+        incrementSolve()
 
         # Start solving
         solving = None
         solveRetries = 0
-        logging.debug(f'Trying to generate solving, try number: {solveRetries + 1}')
         while solveRetries < MAX_SOLVE_RETRIES and solving is None:
+            attemptNo = solveRetries + 1
+            logging.info(f"Generate solving attempt {attemptNo}/{MAX_SOLVE_RETRIES}")
+            attemptStart = time.perf_counter()
             solving = generateLinkMap(
                 existingAspects[0],
                 noneHexagons[0],
@@ -88,10 +93,12 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
                 interruptingFlag
             )
             solveRetries += 1
+            elapsedMs = (time.perf_counter() - attemptStart) * 1000
+            logging.info(f"Solving attempt {attemptNo} finished in {elapsedMs:.0f} ms, result: {'OK' if solving else 'None'}")
 
         if solving is None:
             currentLinkMap[0] = existingAspects[0]
-            logging.debug(f'None solving gotten from "generateLinkMap"')
+            logging.error(f"No solving after {MAX_SOLVE_RETRIES} attempts; using existing aspects")
         else:
             currentLinkMap[0] = solving
             logging.debug(f'New solving generated {currentLinkMap[0]}')
@@ -277,6 +284,8 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     # --- Active state elements
     def insertAndPrepareNextIteration() -> None:
         logging.info("Inserting and preparing for next iteration")
+        incrementResearch()
+        resetSolve()
         if multyResearchesCountLeft[0] > 0:
             UI.safeSetAllObjectsVisibility(False)
             UI.safeRepaint()
@@ -478,6 +487,8 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.setObjectsVisibility(donateObjects, True)
         exitButtonObject.setVisibility(True)
 
+    setResearch(1)
+    resetSolve()
     updateDetectingField()
     updateSolving()
     switchToActiveState()

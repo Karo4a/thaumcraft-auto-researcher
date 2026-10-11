@@ -16,14 +16,17 @@ from configs.constants import LOG_FILE_PATH, MAX_LOG_FILE_SIZE_BYTES, DEBUG, LOG
 from editions import getEditionNames
 from utils import AppState
 from utils.utils import createDirByFilePath
+from utils.log_context import ContextFilter
 
 createDirByFilePath(LOG_FILE_PATH)
 loggingHandlers: list[logging.Handler] = [RotatingFileHandler(filename=LOG_FILE_PATH, maxBytes=MAX_LOG_FILE_SIZE_BYTES, backupCount=MAX_LOG_FILES_COUNT)]
 if DEBUG:
     loggingHandlers.append(logging.StreamHandler(sys.stdout))  # output both to console and log-files
+for handler in loggingHandlers:
+    handler.addFilter(ContextFilter())
 logging.basicConfig(
     handlers=loggingHandlers,
-    format="%(asctime)s [%(levelname)s] (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s",
+    format="%(asctime)s [%(levelname)s] [%(solutionContext)s] (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s",
     level=LOG_LEVEL,
     force=True,
 )

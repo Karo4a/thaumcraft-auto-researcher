@@ -1,4 +1,5 @@
 import logging
+from collections import Counter
 import math
 from typing import Any, Callable
 
@@ -172,6 +173,7 @@ class GtnhThaumInteractor(ThaumInteractor):
                 logging.critical(f"Not enough aspects to mix {aspectRecipe.name}: x{mixingTimes} of "
                                  f"{aspect1.name}({aspect1.count}) and {aspect2.name}({aspect2.count})")
                 return False
+            logging.info(f"Mix plan: {aspectRecipe.name} x{mixingTimes} from {aspect1.name}({aspect1.count}) + {aspect2.name}({aspect2.count})")
             self.takeAspectByCellCoords(aspect1.cellX, aspect1.cellY, aspect1.rectAspectsNumber)
             aspect2_point = self.inventoryCellCoordsToPixelCoords(aspect2.cellX, aspect2.cellY, aspect2.rectAspectsNumber)
             eventsDelay()
@@ -193,12 +195,20 @@ class GtnhThaumInteractor(ThaumInteractor):
         aspectsListMap.sort(key=lambda pair: self.getAspectByName(pair[1]).uid)
         logging.debug(f"Sorted aspects link map: {aspectsListMap}")
 
+        demand = Counter(aspectName for _, aspectName in aspectsListMap)
+        logging.info(f"Placement demand: {dict(demand)}")
+        availableCounts = {a.name: a.count for a in self.availableAspects}
+        logging.info(f"Available before placement: {availableCounts}")
+
         for coords, aspectName in aspectsListMap:
             aspect = self.getAspectByName(aspectName)
+            if (aspect.count or 0) <= 0:
+                logging.warning(f"Not enough {aspect.name}: count {aspect.count} for cell {coords}")
             self.takeAspect(aspect)
             eventsDelay()
             self.putAspect(*coords)
             eventsDelay()
+            logging.info(f"Placed {aspect.name}(uid={aspect.uid}) into cell {coords}, left: {aspect.count}")
 
     def updateAvailableAspectsInInventory(self, onFinishCallback: Callable, callbackArgs: list[Any] = []) -> None:
         logging.info("Detecting available aspects in inventory... (GTNH)")
@@ -241,7 +251,7 @@ class GtnhThaumInteractor(ThaumInteractor):
                 logging.debug(f"Aspect: {aspect}, ({aspect.cellX}, {aspect.cellY}), rect: {rectAspectsNumber}")
                 self.availableAspects.append(aspect)
 
-            logging.info(f"All found aspects: {self.availableAspects}")
+            # logging.info(f"All found aspects: {self.availableAspects}")
 
         def exitWithSort() -> None:
             self.UI.removeObject(debugHighlightingRect)

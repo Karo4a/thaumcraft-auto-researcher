@@ -165,7 +165,7 @@ class Aspect:
 
 
 def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set[tuple[int, int]], available_aspects: set[str], interruptingFlag: list[bool]) -> dict[tuple[int, int], str] | None:
-    logging.debug("-----------")
+    # logging.debug("-----------")
     logging.info("START SOLVING")
     logging.debug("#---0. Setting up:")
     logging.info(f"EXISTING ASPECTS: {existing_aspects}")
@@ -203,11 +203,11 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
         # Вывбираем один аспект из изначальных
         for start_initial_aspect in initial_aspects:
             iteration_number += 1
-            logging.debug(f"#### Iteration {iteration_number} ####")
+            # logging.debug(f"#### Iteration {iteration_number} ####")
             # Получаем, к каким изначальынм аспектам он не привязан
             # Говорим, что хотим привязать его к первому из них
             not_linked_to_aspects = initial_aspects.difference(start_initial_aspect.linked_to_initials)
-            logging.debug(f"{start_initial_aspect} not linked to {not_linked_to_aspects}")
+            # logging.debug(f"{start_initial_aspect} not linked to {not_linked_to_aspects}")
             if len(not_linked_to_aspects) == 0:
                 continue
             is_all_aspects_linked = False
@@ -238,7 +238,7 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
                 logging.error(f"Warning: Cell with aspect {start_initial_aspect} is unreachable from any other aspects")
                 return existing_aspects
 
-            logging.debug(f"Min distance {min_len_between_aspects} found from aspect: {min_start_aspect} to aspect: {min_end_aspect}")
+            # logging.debug(f"Min distance {min_len_between_aspects} found from aspect: {min_start_aspect} to aspect: {min_end_aspect}")
             # К выбранному аспекту пытаемся построить цепочки. Сначала самую короткую, потом всё длиннее
             end_initial_aspect = min_end_initial_aspect
             end_aspect = min_end_aspect
@@ -253,14 +253,14 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
                     continue
                 logging.debug(f"Path with len: {target_path_len} generated: {aspects_path}")
                 # Если цепочка найдена, пытаемся пройти найти маршрут заданной длины
-                logging.debug(f"#---3. Trying to find coordinates path with len {target_path_len} from {start_aspect} to {end_aspect}")
+                # logging.debug(f"#---3. Trying to find coordinates path with len {target_path_len} from {start_aspect} to {end_aspect}")
                 all_holes_set = holes_set | set(map(lambda asp: asp.coord, aspects_on_field))
                 min_len_between_aspects, coordsPath = start_aspect.get_min_distance_path_to(end_aspect, hexagon_field_radius, all_holes_set, initial_aspects, target_path_len)
                 if min_len_between_aspects > MAX_ASPECTS_SOLVING_PATH_LEN:
                     logging.debug(f"Coordinates path with len {target_path_len} not found")
                     target_path_len += 1
                     continue
-                logging.debug(f"Coordinates path found: {coordsPath}")
+                # logging.debug(f"Coordinates path found: {coordsPath}")
 
                 logging.debug("#---4. Fill gotten aspects and prepare to next step")
                 # Объединяем linked_to, и записываем в оба исходых аспекта один и тот же этот список)
@@ -282,14 +282,16 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
                     for initial_aspect in from_initial.linked_to_initials:
                         update_all_linked_aspects(initial_aspect)
                 update_all_linked_aspects(end_initial_aspect)
-                logging.debug(f"Aspects {visited_initials} is now linked between themselves")
+                # logging.debug(f"Aspects {visited_initials} is now linked between themselves")
 
-                logging.debug(f"Aspect path putted on field. Total aspects: {aspects_on_field}")
-                logging.debug("Iteration finished.")
+                # logging.debug(f"Aspect path putted on field. Total aspects: {aspects_on_field}")
+                # logging.debug("Iteration finished.")
                 break
             if target_path_len == MAX_ASPECTS_SOLVING_PATH_LEN:
                 logging.error(f"Error: Path from {start_aspect} to {end_aspect} cannot be generated")
                 return None
+    if interruptingFlag[0]:
+        logging.warning("Solving interrupted (timeout)")
     logging.info(f"Final solving: {result}")
     return result
 
