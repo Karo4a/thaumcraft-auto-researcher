@@ -30,6 +30,7 @@ logging.basicConfig(
     level=LOG_LEVEL,
     force=True,
 )
+logging.getLogger("PIL").setLevel(logging.INFO)
 
 UI: OverlayUI = OverlayUI(opacity=1)
 

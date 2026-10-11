@@ -108,5 +108,5 @@ def loadImage(
     newImage = backgroundImage.convert("RGBA")
     newImage.paste(image, mask=image)  # Paste the image on the background. Go to the links given below for details.
     result = newImage.convert('RGB')
-    logging.debug(f"Loaded image {path}")
+    # logging.debug(f"Loaded image {path}")
     return result

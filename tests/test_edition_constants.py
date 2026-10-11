@@ -28,9 +28,9 @@ class EditionConstantsValuesTest(unittest.TestCase):
         self.assertEqual(VanillaEdition.delayBetweenRender, 0.5)
 
     def test_gtnh_delays(self):
-        self.assertEqual(gtnh_constants.DELAY_BETWEEN_EVENTS, 0.05)
+        self.assertEqual(gtnh_constants.DELAY_BETWEEN_EVENTS, 0.3)
         self.assertEqual(gtnh_constants.DELAY_BETWEEN_RENDER, 0.2)
-        self.assertEqual(GtnhEdition.delayBetweenEvents, 0.05)
+        self.assertEqual(GtnhEdition.delayBetweenEvents, 0.3)
         self.assertEqual(GtnhEdition.delayBetweenRender, 0.2)
 
     def test_gtnh_overrides_base_delays(self):
@@ -50,7 +50,7 @@ class EditionConstantsUsageTest(unittest.TestCase):
 
     def test_gtnh_delays_are_used_by_common_code(self):
         editions.selectEdition("gtnh")
-        self.assertEqual(self._recordedSleeps(), [mock.call(0.05), mock.call(0.2)])
+        self.assertEqual(self._recordedSleeps(), [mock.call(0.3), mock.call(0.2)])
 
     def test_vanilla_delays_are_used_by_common_code(self):
         editions.selectEdition("vanilla")

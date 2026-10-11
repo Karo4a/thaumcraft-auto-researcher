@@ -93,7 +93,7 @@ class GtnhThaumInteractor(ThaumInteractor):
 
     def takeAspectByCellCoords(self, cellX: int, cellY: int, rectAspectNumber: int) -> None:
         aspectPoint = self.inventoryCellCoordsToPixelCoords(cellX, cellY, rectAspectNumber)
-        logging.info(f"Take aspect from cell ({cellX, cellY}), coordinates: {aspectPoint}")
+        # logging.info(f"Take aspect from cell ({cellX, cellY}), coordinates: {aspectPoint}")
         aspectPoint.hold()
         self._showDebugClick(aspectPoint, QColor('blue'))
 
@@ -232,11 +232,11 @@ class GtnhThaumInteractor(ThaumInteractor):
             predictions: list[ObjectPrediction] = Neurolink.predict_inventory_aspects(screenshotImage)
             predictionsAspect, predictionsDigit = splitAspectsAndDigits(predictions)
             predictionsAspect = filterByMaxConfidence(predictionsAspect)
-            logging.info(f"Aspects predictions: {predictionsAspect}")
+            # logging.info(f"Aspects predictions: {predictionsAspect}")
 
             logging.info("Wait for prediction counts")
             count_predictions = aspects_count(predictionsAspect, predictionsDigit)
-            logging.info(f"Counts predictions:  {count_predictions}")
+            # logging.info(f"Counts predictions:  {count_predictions}")
 
             for prediction in predictionsAspect:
                 try:
@@ -248,7 +248,7 @@ class GtnhThaumInteractor(ThaumInteractor):
                 aspect.cellY = int(prediction.y // slotHeight)
                 aspect.count = aspect_count or 0
                 aspect.rectAspectsNumber = rectAspectsNumber
-                logging.debug(f"Aspect: {aspect}, ({aspect.cellX}, {aspect.cellY}), rect: {rectAspectsNumber}")
+                # logging.debug(f"Aspect: {aspect}, ({aspect.cellX}, {aspect.cellY}), rect: {rectAspectsNumber}")
                 self.availableAspects.append(aspect)
 
             # logging.info(f"All found aspects: {self.availableAspects}")
