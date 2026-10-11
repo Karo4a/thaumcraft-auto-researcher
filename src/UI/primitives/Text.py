@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QPainter, QFont
@@ -9,13 +9,16 @@ from UI.primitives.Rect import opacityToAlpha
 from UI.primitives.values import DEFAULT_FONT, DEFAULT_COLOR, DEFAULT_PADDING
 from utils.LinkableValue import editLinkableValue, LinkableValue
 
+if TYPE_CHECKING:
+    from UI.OverlayUI import OverlayUI
+
 
 class Align(int):
-    left = Qt.AlignLeft
-    right = Qt.AlignRight
-    top = Qt.AlignTop
-    bottom = Qt.AlignBottom
-    center = Qt.AlignCenter
+    left: int = Qt.AlignLeft
+    right: int = Qt.AlignRight
+    top: int = Qt.AlignTop
+    bottom: int = Qt.AlignBottom
+    center: int = Qt.AlignCenter
 
 
 class Text(_Object):
@@ -24,21 +27,21 @@ class Text(_Object):
             x: float,
             y: float,
             text: str,
-            font=QFont(DEFAULT_FONT),
-            color=QColor(DEFAULT_COLOR),
+            font: QFont = QFont(DEFAULT_FONT),
+            color: QColor = QColor(DEFAULT_COLOR),
             align: Align = Align.left,
-            withBackground=False,
-            backgroundColor=QColor('black'),
-            backgroundOpacity=0.5,
+            withBackground: bool = False,
+            backgroundColor: QColor = QColor('black'),
+            backgroundOpacity: float = 0.5,
             padding: int | tuple[int, int, int, int] = DEFAULT_PADDING,
             movable: bool = False,
             hoverable: bool = False,
             hoverColor: QColor = None,
             onMoveCallback: Callable = None,
-            UI=None,
+            UI: "OverlayUI | None" = None,
             onClickCallback: Callable = None,
-            onClickCallbackArgs: list = [],
-            clickable: bool = None):
+            onClickCallbackArgs: list[Any] = [],
+            clickable: bool = None) -> None:
         lines = text.split('\n')
         self.w = max(map(len, lines)) * font.pointSize() / 1.05
         self.h = font.pointSize() * 2.1 * len(lines)
@@ -83,7 +86,7 @@ class Text(_Object):
         super().__init__()
         self._currentColor = self.backgroundColor
 
-    def render(self, painter: QPainter):
+    def render(self, painter: QPainter) -> None:
         if not super().render(painter): return
         painter.setFont(self.font)
         if self.withBackground:
@@ -103,7 +106,7 @@ class Text(_Object):
         if self.movable:
             self.LT.setVisibility(state)
 
-    def isHover(self, x: float, y: float):
+    def isHover(self, x: float, y: float) -> bool:
         if not self.visible:
             return False
         return (
@@ -111,11 +114,11 @@ class Text(_Object):
                 self.y <= y <= self.y + self.h
         )
 
-    def setColor(self, color: QColor):
+    def setColor(self, color: QColor) -> None:
         super().setColor(color)
         self._currentColor = self.backgroundColor
 
-    def setText(self, text: str):
+    def setText(self, text: str) -> None:
         self.text = text
         lines = text.split('\n')
         self.w = max(map(len, lines)) * self.font.pointSize() / 1.05
@@ -124,8 +127,8 @@ class Text(_Object):
             self.w += self.padding[1] + self.padding[3]
             self.h += self.padding[0] + self.padding[2]
 
-    def updateHoverState(self, x: float, y: float, isMouseRelease: bool = False):
+    def updateHoverState(self, x: float, y: float, isMouseRelease: bool = False) -> None:
         self._updateHoverState(x, y, isMouseRelease, "backgroundColor" if self.withBackground else "color")
 
-    def _setCurrentColor(self, color: QColor):
+    def _setCurrentColor(self, color: QColor) -> None:
         self._currentColor = color

@@ -1,3 +1,5 @@
+from typing import Any
+
 from PIL import Image
 
 from configs import constants
@@ -10,14 +12,14 @@ class _NeurolinkClass:
     inventory_aspects_model: OnnxObjectDetection
 
     # Make it singleton
-    _instances = {}
+    _instances: dict[type, "_NeurolinkClass"] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: Any, **kwargs: Any) -> "_NeurolinkClass":
         if cls not in cls._instances:
             cls._instances[cls] = super(_NeurolinkClass, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
-    def __init__(self):
+    def __init__(self) -> None:
         with open(constants.FIELD_CLASS_NAMES_PATH) as file:
             self.field_aspects_model = OnnxObjectDetection(
                 model_path=constants.FIELD_OBJECT_DETECTION_PATH,
@@ -48,4 +50,4 @@ class _NeurolinkClass:
         return digit_recognition.aspects_count(predictions)
 
 
-Neurolink = _NeurolinkClass()
+Neurolink: _NeurolinkClass = _NeurolinkClass()

@@ -1,4 +1,6 @@
 import itertools
+from collections.abc import Callable, Iterator
+from typing import Any
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QPen, QBrush, QPainter
@@ -16,38 +18,38 @@ def mixColors(color1: QColor, color2: QColor, ratio: float = 0.5, mixAlpha: bool
     return QColor(int(r), int(g), int(b), int(a))
 
 
-_objectIdValue = itertools.count()
+_objectIdValue: Iterator[int] = itertools.count()
 
 
 class _Object:
-    id = None
-    lineWidth = DEFAULT_LINE_WIDTH
-    color = DEFAULT_COLOR
-    hoverColor = None
-    _currentColor = None
-    visible = True
-    movable = False
-    hoverable = False
-    onClickCallback = None
-    onClickCallbackArgs = []
-    clickable = False
+    id: int = None
+    lineWidth: int = DEFAULT_LINE_WIDTH
+    color: QColor = DEFAULT_COLOR
+    hoverColor: QColor | None = None
+    _currentColor: QColor | None = None
+    visible: bool = True
+    movable: bool = False
+    hoverable: bool = False
+    onClickCallback: Callable | None = None
+    onClickCallbackArgs: list[Any] = []
+    clickable: bool = False
     _pen: QPen = None
     _brush: QBrush = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.id = next(_objectIdValue)
         self._currentColor = self.color
         self._init()
-    def setColor(self, color: QColor):
+    def setColor(self, color: QColor) -> None:
         self.color = color
         self._currentColor = color
         self._init()
 
-    def _setCurrentColor(self, color: QColor):
+    def _setCurrentColor(self, color: QColor) -> None:
         self._currentColor = color
         self._init()
 
-    def _init(self):
+    def _init(self) -> None:
         self._pen = QPen(self._currentColor, self.lineWidth, cap=Qt.RoundCap, join=Qt.RoundJoin)
         if self.lineWidth == 0:
             self._pen.setColor(QColor('transparent'))
@@ -66,7 +68,7 @@ class _Object:
     def setVisibility(self, state: bool) -> None:
         self.visible = state
 
-    def _updateHoverState(self, x: float, y: float, isMouseRelease: bool, targetFieldName: str = "color"):
+    def _updateHoverState(self, x: float, y: float, isMouseRelease: bool, targetFieldName: str = "color") -> None:
         if not self.hoverable:
             return
         if not isMouseRelease and self.isHover(x, y):
@@ -82,5 +84,5 @@ class _Object:
         else:
             self._setCurrentColor(getattr(self, targetFieldName))
 
-    def updateHoverState(self, x: float, y: float, isMouseRelease: bool = False):
+    def updateHoverState(self, x: float, y: float, isMouseRelease: bool = False) -> None:
         self._updateHoverState(x, y, isMouseRelease)

@@ -21,7 +21,7 @@ class OnnxObjectDetection:
             model_path: str,
             class_names: list[str],
             img_size: int,  # Высота/ширина квадратного изображения
-    ):
+    ) -> None:
         self.model = onnxruntime.InferenceSession(model_path)
         self.class_names = class_names
         inputs = self.model.get_inputs()
@@ -98,7 +98,7 @@ def preprocess(
 
 
 def postprocess(
-        predictions,
+        predictions: np.ndarray,
         scale: float,
         origin_shape: tuple[int, int],
         confidence: float = 0.4,
@@ -128,14 +128,14 @@ def postprocess(
 
 
 def w_np_non_max_suppression(
-        prediction,
+        prediction: np.ndarray,
         conf_thresh: float = 0.25,
         iou_thresh: float = 0.45,
         class_agnostic: bool = False,
         max_detections: int = 300,
         num_masks: int = 0,
         box_format: str = "xywh",
-):
+) -> list:
     """Applies non-maximum suppression to predictions.
 
     Args:
@@ -224,7 +224,7 @@ def w_np_non_max_suppression(
     return batch_predictions
 
 
-def non_max_suppression_fast(boxes, overlapThresh):
+def non_max_suppression_fast(boxes: np.ndarray, overlapThresh: float) -> np.ndarray | list:
     """Applies non-maximum suppression to bounding boxes.
 
     Args:

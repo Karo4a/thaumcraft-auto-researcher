@@ -8,7 +8,7 @@ from controllers.Scenarios.shared import createNextBackButtonsAndText
 from utils import AppState
 
 
-def beReadyForStartSolving(UI: OverlayUI, TI: ThaumInteractor):
+def beReadyForStartSolving(UI: OverlayUI, TI: ThaumInteractor) -> None:
     logging.info(f"Be ready for solving scenario started")
     UI.clearAll()
     UI.createExitButton()

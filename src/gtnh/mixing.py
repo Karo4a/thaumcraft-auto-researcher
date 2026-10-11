@@ -10,12 +10,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Optional
+from typing import TYPE_CHECKING, Callable
+
+if TYPE_CHECKING:
+    from controllers.Aspect import Aspect
 
 
-def planMixing(aspect: Any, targetCount: int,
-               getAspectByName: Callable[[str], Any],
-               getAspectRecipeByName: Callable[[str], list[str]]) -> Optional[list[tuple[Any, int]]]:
+def planMixing(aspect: Aspect, targetCount: int,
+               getAspectByName: Callable[[str], Aspect],
+               getAspectRecipeByName: Callable[[str], list[str]]) -> list[tuple[Aspect, int]] | None:
     """
     Строит план микса аспекта до targetCount снизу вверх (ингредиенты раньше результата).
     Возвращает список пар (аспект, количество миксов) или None, если микс невозможен.
@@ -35,7 +38,7 @@ def planMixing(aspect: Any, targetCount: int,
 
     mixingStack = [aspect]
     totalMixingForAspect = {aspect.name: mixingTimes}
-    totalCostBasicAspects = {}
+    totalCostBasicAspects: dict[str, int] = {}
     notProcessedRecipes = [recipe]
 
     while notProcessedRecipes:
@@ -56,7 +59,7 @@ def planMixing(aspect: Any, targetCount: int,
                 if totalCostBasicAspects[aspectInRecipe.name] > aspectInRecipe.count:
                     return None
 
-    plan = []
+    plan: list[tuple[Aspect, int]] = []
     while mixingStack:
         aspectRecipe = mixingStack.pop()
         times = totalMixingForAspect[aspectRecipe.name]
@@ -72,7 +75,7 @@ def selectCraftableAspects(allAspectNames: list[str], recipes: dict[str, list[st
     Возвращает имена аспектов (в порядке allAspectNames), которые сейчас можно скрафтить:
     аспект ещё не открыт, у него есть рецепт, и оба ингредиента уже доступны.
     """
-    craftable = []
+    craftable: list[str] = []
     for name in allAspectNames:
         if name in availableNames:
             continue

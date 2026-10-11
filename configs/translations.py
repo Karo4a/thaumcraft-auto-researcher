@@ -1,51 +1,52 @@
 from dataclasses import dataclass
+from typing import ClassVar
 
 
 @dataclass
 class TEXTS:
-    languageName = "languageName"
+    languageName: ClassVar[str] = "languageName"
 
-    enroll = "enroll"
-    configureThaumWindow = "configureThaumWindow"
-    confirmThaumWindowSlots = "confirmThaumWindowSlots"
-    chooseThaumVersion = "chooseThaumVersion"
-    chooseGtnhVersion = "chooseGtnhVersion"
-    beReadyForStartSolving = "beReadyForStartSolving"
-    beReadyForDetectionAspects = "beReadyForDetectionAspects"
-    waitForDetectionAspects = "waitForDetectionAspects"
-    aspectsDetected = "aspectsDetected"
-    aspectChanging = "aspectChanging"
-    waitForSolvingPlacing = "waitForSolvingPlacing"
-    solvingCreated = "solvingCreated"
-    programPaused = "programPaused"
-    startAutomaticMode = "startAutomaticMode"
-    donate = "donate"
-    chooseEdition = "chooseEdition"
-    openAllAspects = "openAllAspects"
+    enroll: ClassVar[str] = "enroll"
+    configureThaumWindow: ClassVar[str] = "configureThaumWindow"
+    confirmThaumWindowSlots: ClassVar[str] = "confirmThaumWindowSlots"
+    chooseThaumVersion: ClassVar[str] = "chooseThaumVersion"
+    chooseGtnhVersion: ClassVar[str] = "chooseGtnhVersion"
+    beReadyForStartSolving: ClassVar[str] = "beReadyForStartSolving"
+    beReadyForDetectionAspects: ClassVar[str] = "beReadyForDetectionAspects"
+    waitForDetectionAspects: ClassVar[str] = "waitForDetectionAspects"
+    aspectsDetected: ClassVar[str] = "aspectsDetected"
+    aspectChanging: ClassVar[str] = "aspectChanging"
+    waitForSolvingPlacing: ClassVar[str] = "waitForSolvingPlacing"
+    solvingCreated: ClassVar[str] = "solvingCreated"
+    programPaused: ClassVar[str] = "programPaused"
+    startAutomaticMode: ClassVar[str] = "startAutomaticMode"
+    donate: ClassVar[str] = "donate"
+    chooseEdition: ClassVar[str] = "chooseEdition"
+    openAllAspects: ClassVar[str] = "openAllAspects"
 
     @dataclass
     class Buttons:
-        cancel = "cancel"
-        confirm = "confirm"
-        backArrowed = "backArrowed"
-        nextArrowed = "nextArrowed"
-        back = "back"
-        next = "next"
-        cellIsEmpty = "cellIsEmpty"
-        aspectData = "aspectData"
-        backToSettings = "backToSettings"
-        regenerateSolving = "regenerateSolving"
-        placeSolving = "placeSolving"
-        automaticMode = "automaticMode"
-        setCellNotAvailable = "setCellNotAvailable"
-        setCellFree = "setCellFree"
-        notSelected = "notSelected"
-        goToDonate = "goToDonate"
-        donateGlobal = "donateGlobal"
-        donateRussia = "donateRussia"
+        cancel: ClassVar[str] = "cancel"
+        confirm: ClassVar[str] = "confirm"
+        backArrowed: ClassVar[str] = "backArrowed"
+        nextArrowed: ClassVar[str] = "nextArrowed"
+        back: ClassVar[str] = "back"
+        next: ClassVar[str] = "next"
+        cellIsEmpty: ClassVar[str] = "cellIsEmpty"
+        aspectData: ClassVar[str] = "aspectData"
+        backToSettings: ClassVar[str] = "backToSettings"
+        regenerateSolving: ClassVar[str] = "regenerateSolving"
+        placeSolving: ClassVar[str] = "placeSolving"
+        automaticMode: ClassVar[str] = "automaticMode"
+        setCellNotAvailable: ClassVar[str] = "setCellNotAvailable"
+        setCellFree: ClassVar[str] = "setCellFree"
+        notSelected: ClassVar[str] = "notSelected"
+        goToDonate: ClassVar[str] = "goToDonate"
+        donateGlobal: ClassVar[str] = "donateGlobal"
+        donateRussia: ClassVar[str] = "donateRussia"
 
 
-TRANSLATIONS = {
+TRANSLATIONS: dict[str, dict[str, str]] = {
     "Russian": {
         TEXTS.languageName: "Русский",
         TEXTS.chooseGtnhVersion: "Выберите версию сборки GTNH.",

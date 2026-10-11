@@ -11,7 +11,7 @@ from utils import AppState
 from utils.LinkableValue import LinkableCoord
 
 
-def configureThaumWindowCoords(UI: OverlayUI):
+def configureThaumWindowCoords(UI: OverlayUI) -> None:
     UI.clearAll()
     UI.createExitButton()
 

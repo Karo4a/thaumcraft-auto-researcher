@@ -2,11 +2,12 @@ import logging
 
 from PyQt5.QtGui import QColor
 
-from UI.OverlayUI import KeyboardKeys
+from UI.OverlayUI import KeyboardKeys, OverlayUI
 from UI.primitives import UIPrimitive, Image, Rect
 from UI.primitives.Text import Align, Text
 from configs.translations import TEXTS
 from controllers.Aspect import Aspect
+from controllers.ThaumInteractor import ThaumInteractor
 from controllers import Scenarios
 from controllers.Scenarios.shared import createNextBackButtonsAndText, createButtonsAndText
 from configs.constants import MARGIN, THAUM_ASPECTS_INVENTORY_SLOTS_X, THAUM_ASPECTS_INVENTORY_SLOTS_Y
@@ -14,7 +15,7 @@ from utils import AppState
 from utils.utils import renderDelay
 
 
-def detectionAspectsDialogue(UI, TI):
+def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
     TI.scrollToLeftSide()
     logging.info(f"TI successfully detected all aspects")
 
@@ -31,9 +32,9 @@ def detectionAspectsDialogue(UI, TI):
     cellColorFree = QColor('black')
     cellColorFree.setAlpha(50)
     # draw clickable cells
-    cellsObjects = []
+    cellsObjects: list[UIPrimitive] = []
 
-    def updateCurrentAspectData():
+    def updateCurrentAspectData() -> None:
         logging.info(f"Current aspect data updated on screen. Aspect: {currentAspect[0]}")
         currentAspectMainText.setText(f'{currentAspect[0].name if currentAspect[0] else AppState.translatedTexts[TEXTS.Buttons.notSelected]}, x{currentAspectCount[0] or "?"}.')
         if currentAspect[0]:
@@ -41,11 +42,11 @@ def detectionAspectsDialogue(UI, TI):
         else:
             currentAspectImage.clearImage()
 
-    def drawCurrentPageAspects():
+    def drawCurrentPageAspects() -> None:
         UI.removeObjects(cellsObjects)
         cellsObjects.clear()
 
-        def onClickCell(aspect: Aspect, cellX: int, cellY: int):
+        def onClickCell(aspect: Aspect, cellX: int, cellY: int) -> None:
             logging.info(f"Click on aspect to change: {aspect}, cellX: {cellX}, cellY {cellY}")
             currentAspectCellCoords[0] = cellX
             currentAspectCellCoords[1] = cellY
@@ -115,7 +116,7 @@ def detectionAspectsDialogue(UI, TI):
     RPoint = TI.pointAspectsScrollRight
     # buttonsLRWidth = (RPoint.x - LPoint.x)
     # buttonsLRHeight = buttonsLRWidth * 0.3
-    def onClickScrollButton(isLeft=False):
+    def onClickScrollButton(isLeft: bool = False) -> None:
         logging.info(f"Inventory aspects page scrolling to {'LEFT' if isLeft else 'RIGHT'}")
         UI.setAllObjectsVisibility(False)
         exitButton.setVisibility(True)
@@ -165,10 +166,10 @@ def detectionAspectsDialogue(UI, TI):
     currentAspect: list[Aspect | None] = [None]
     cellDialogueObjects: list[UIPrimitive] = []
 
-    def cancelAspectChanges():
+    def cancelAspectChanges() -> None:
         logging.info(f"Aspect changing canceled")
         switchToMainDialogue()
-    def confirmAspectChanges():
+    def confirmAspectChanges() -> None:
         logging.info(f"Aspect changing confirmed")
         prevAspect = TI.getAspectByCellCoords(*currentAspectCellCoords)
         newAspect = currentAspect[0]
@@ -183,7 +184,7 @@ def detectionAspectsDialogue(UI, TI):
         )
         logging.info(f"All new available aspects: {TI.availableAspects}")
         switchToMainDialogue()
-    def confirmAspectIsNone():
+    def confirmAspectIsNone() -> None:
         logging.info(f"Aspect is none changing confirmed")
         prevAspect = TI.getAspectByCellCoords(*currentAspectCellCoords)
         logging.info(f"Previous aspect: {prevAspect}, change to None")
@@ -234,15 +235,15 @@ def detectionAspectsDialogue(UI, TI):
     if currentAspect[0]:
         currentAspectImage.setImage(currentAspect[0].pixMapImage)
 
-    def onSelectAspect(aspect: Aspect):
+    def onSelectAspect(aspect: Aspect) -> None:
         logging.info(f"Selected new aspect to selected cell {aspect}")
         currentAspect[0] = aspect
         updateCurrentAspectData()
 
     textYCoord += currentAspectMainText.h + MARGIN
     startTextYCoord = textYCoord
-    cellsDialogueAspectsTexts = []
-    cellsDialogueAspectsImages = []
+    cellsDialogueAspectsTexts: list[Text] = []
+    cellsDialogueAspectsImages: list[Image] = []
     for i in range(len(TI.allAspects)):
         aspect = TI.allAspects[i]
         textAspect = UI.addObject(Text(
@@ -273,7 +274,7 @@ def detectionAspectsDialogue(UI, TI):
             textXCoord += 250
 
     oldCellMainTextCallback = cellMainText.onMoveCallback
-    def onCellDialogueMainTextMoving():
+    def onCellDialogueMainTextMoving() -> None:
         oldCellMainTextCallback()
 
         textYCoord = cellBackButton.y + cellBackButton.h + MARGIN
@@ -306,7 +307,7 @@ def detectionAspectsDialogue(UI, TI):
     UI.setObjectsVisibility(cellDialogueObjects, False)
 
     # --- Switch states functions
-    def switchToMainDialogue():
+    def switchToMainDialogue() -> None:
         logging.info(f"Switching to a main change inventory apsects dialogue...")
         UI.setObjectsVisibility(cellDialogueObjects, False)
         UI.setObjectsVisibility(mainDialogueObjects, True)
@@ -317,18 +318,18 @@ def detectionAspectsDialogue(UI, TI):
         if TI.currentAspectsPageIdx >= TI.maxAspectsPagesCount - 1:
             buttonScrollR.setVisibility(False)
         drawCurrentPageAspects()
-    def switchToCellDialogue():
+    def switchToCellDialogue() -> None:
         logging.info(f"Switching to a directly change aspect dialogue...")
         UI.removeObjects(cellsObjects)
         UI.setObjectsVisibility(mainDialogueObjects, False)
         UI.setObjectsVisibility(cellDialogueObjects, True)
         UI.clearKeyCallbacks()
 
-        def onInputNumber(number: int):
+        def onInputNumber(number: int) -> None:
             currentAspectCount[0] += str(number)
             logging.debug(f"Pressed key: {number}. New value of aspect count: {currentAspectCount[0]}")
             updateCurrentAspectData()
-        def onBackspace():
+        def onBackspace() -> None:
             if len(currentAspectCount[0]) > 0:
                 currentAspectCount[0] = currentAspectCount[0][:-1]
                 logging.debug(f"Pressed key Backspace. New value of aspect count: {currentAspectCount[0]}")

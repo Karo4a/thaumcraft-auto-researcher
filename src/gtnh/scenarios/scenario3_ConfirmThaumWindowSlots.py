@@ -3,6 +3,7 @@ from math import cos, pi, sin
 
 from PyQt5.QtGui import QColor
 
+from UI.OverlayUI import OverlayUI
 from UI.primitives import Point, Line, Rect
 from configs.constants import THAUM_HEXAGONS_SLOTS_COUNT
 from configs.translations import TEXTS
@@ -13,7 +14,7 @@ from utils import AppState
 from utils.LinkableValue import LinkableCoord, LinkableValue
 
 
-def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
+def confirmThaumWindowSlots(UI: OverlayUI, LTx: float, LTy: float, RBx: float, RBy: float) -> None:
     thaumWindowWidth = RBx - LTx
     thaumWindowHeight = RBy - LTy
     logging.info(
@@ -22,7 +23,7 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
     UI.clearAll()
     UI.createExitButton()
 
-    def saveControls():
+    def saveControls() -> None:
         AppState.saveThaumWindowControls(
             pointWritingMaterials, pointPapers,
             rectAspectsListing.LT, rectAspectsListing.RB,
@@ -56,20 +57,20 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
     rectAspectsListing = UI.addObject(
         Rect(rectAspectsLT.x, rectAspectsLT.y, rectAspectsRB.x, rectAspectsRB.y, dashed=True, color=QColor('lime')))
 
-    verticalListingLines = []
+    verticalListingLines: list[Line] = []
     for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
         xVal = rectAspectsLT.x + x * rectAspectsListing.w / THAUM_ASPECTS_INVENTORY_SLOTS_X
         line = Line(xVal, rectAspectsLT.y, xVal, rectAspectsRB.y, dashed=True, color=QColor('lime'), width=1)
         verticalListingLines.append(line)
         UI.addObject(line)
-    horizontalListingLines = []
+    horizontalListingLines: list[Line] = []
     for y in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_Y):
         yVal = rectAspectsLT.y + y * rectAspectsListing.h / THAUM_ASPECTS_INVENTORY_SLOTS_Y
         line = Line(rectAspectsLT.x, yVal, rectAspectsRB.x, yVal, dashed=True, color=QColor('lime'), width=1)
         horizontalListingLines.append(line)
         UI.addObject(line)
 
-    def updateListingRectCoords():
+    def updateListingRectCoords() -> None:
         rectW = rectAspectsRB.x - rectAspectsLT.x
         rectH = rectAspectsRB.y - rectAspectsLT.y
         for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
@@ -95,20 +96,20 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
     rectAspectsListing2 = UI.addObject(
         Rect(rectAspectsLT2.x, rectAspectsLT2.y, rectAspectsRB2.x, rectAspectsRB2.y, dashed=True, color=QColor('orange')))
 
-    verticalListingLines2 = []
+    verticalListingLines2: list[Line] = []
     for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
         xVal = rectAspectsLT2.x + x * rectAspectsListing2.w / THAUM_ASPECTS_INVENTORY_SLOTS_X
         line = Line(xVal, rectAspectsLT2.y, xVal, rectAspectsRB2.y, dashed=True, color=QColor('orange'), width=1)
         verticalListingLines2.append(line)
         UI.addObject(line)
-    horizontalListingLines2 = []
+    horizontalListingLines2: list[Line] = []
     for y in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_Y):
         yVal = rectAspectsLT2.y + y * rectAspectsListing2.h / THAUM_ASPECTS_INVENTORY_SLOTS_Y
         line = Line(rectAspectsLT2.x, yVal, rectAspectsRB2.x, yVal, dashed=True, color=QColor('orange'), width=1)
         horizontalListingLines2.append(line)
         UI.addObject(line)
 
-    def updateListingRectCoords2():
+    def updateListingRectCoords2() -> None:
         rectW = rectAspectsRB2.x - rectAspectsLT2.x
         rectH = rectAspectsRB2.y - rectAspectsLT2.y
         for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
@@ -135,9 +136,9 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
 
     rectHexagonsCC = LinkableCoord(LTx + Ws * 7.5, LTy + Hs * 5)  # GTNH
     rectHexagonsTy = LinkableValue(LTy + Hs * 2)  # GTNH
-    verticalHexagonsLines = []
-    deg30HexagonsLines = []
-    deg60HexagonsLines = []
+    verticalHexagonsLines: list[Line] = []
+    deg30HexagonsLines: list[Line] = []
+    deg60HexagonsLines: list[Line] = []
     for i in range(THAUM_HEXAGONS_SLOTS_COUNT):
         line = Line(0, 0, 0, 0, dashed=True, color=QColor('blue'), width=1)
         verticalHexagonsLines.append(line)
@@ -151,7 +152,7 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
         deg60HexagonsLines.append(line)
         UI.addObject(line)
 
-    def updateHexagonsCoords():
+    def updateHexagonsCoords() -> None:
         rad = rectHexagonsCC.y - rectHexagonsTy
         slotSizeY = rad / (THAUM_HEXAGONS_SLOTS_COUNT // 2)
         slotSizeX = slotSizeY * cos(pi / 6)

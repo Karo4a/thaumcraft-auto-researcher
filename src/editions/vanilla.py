@@ -2,8 +2,8 @@ from editions.base import BaseEdition
 
 
 class VanillaEdition(BaseEdition):
-    id = "vanilla"
-    displayName = "Thaumcraft"
+    id: str = "vanilla"
+    displayName: str = "Thaumcraft"
 
 
 def createEdition() -> BaseEdition:

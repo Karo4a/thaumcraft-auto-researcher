@@ -7,7 +7,7 @@ from configs.constants import getAspectImagePath, UNKNOWN_ASPECT_IMAGE_PATH
 from utils.utils import loadImage
 
 
-unknownAspectImage = loadImage(UNKNOWN_ASPECT_IMAGE_PATH)
+unknownAspectImage: Image.Image = loadImage(UNKNOWN_ASPECT_IMAGE_PATH)
 
 
 class Aspect:
@@ -20,7 +20,7 @@ class Aspect:
     cellX: int | None
     cellY: int | None
 
-    def __init__(self, name: str, idx: int, cellX: int = None, cellY: int = None):
+    def __init__(self, name: str, idx: int, cellX: int = None, cellY: int = None) -> None:
         self.name = name
         self.uid = idx
         self.cellX = cellX
@@ -41,5 +41,5 @@ class Aspect:
             logging.critical(f"Couldn't load image from path {imagePath} Error: {e}")
             self.mask = Image.open(UNKNOWN_ASPECT_IMAGE_PATH).convert("L")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.name}({self.count})"

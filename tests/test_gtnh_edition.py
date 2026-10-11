@@ -72,10 +72,15 @@ class GtnhEditionTest(unittest.TestCase):
         self.assertIn("evolutio", AppState.aspectRecipes)
 
     def test_gtnh_excludes_base_addon_recipes(self):
-        editions.selectEdition("gtnh")
+        edition = editions.selectEdition("gtnh")
         AppState.rereadThaumVersion()
-        self.assertNotIn("Magic Bees", AppState.allAddonsRecipes)
-        self.assertIn("Twist Space Technology", AppState.allAddonsRecipes)
+        baseAddonsPath = os.path.join(ROOT, "configs", "aspects_configs", "addonsAspectsRecipes.json")
+        with open(baseAddonsPath, encoding="utf-8") as file:
+            baseMods = set(json.load(file))
+        gtnhMods = set(edition.extraAddonsRecipes())
+        self.assertEqual(set(AppState.allAddonsRecipes), gtnhMods)
+        self.assertTrue(baseMods - gtnhMods,
+                        "Базовый файл не содержит уникальных аддонов — тест не проверяет исключение")
         self.assertIn("evolutio", AppState.aspectRecipes)
 
     def test_window_controls_delegation(self):

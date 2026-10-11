@@ -2,24 +2,25 @@ import logging
 import math
 import os
 import time
+from typing import Any
 
 from PIL import Image
 
 
-def distance(x1, y1, x2, y2):
+def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
 class Singleton(type):
-    _instances = {}
+    _instances: dict[type, object] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: Any, **kwargs: Any) -> object:
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
-def createDirByFilePath(fullpath: str):
+def createDirByFilePath(fullpath: str) -> None:
     dir_path = os.path.dirname(fullpath)
     if not os.path.exists(dir_path):
         logging.info(f"Directory {dir_path} not exists. Creating...")
@@ -41,7 +42,7 @@ def getImagesDiffPercent(image1: Image.Image, image2: Image.Image, masks: list[I
     #     print()
     pixelsCount = len(pixels1)
 
-    convertedMasks = []
+    convertedMasks: list[list[int]] = []
     for mask in masks:
         if mask.size != image1.size:
             raise ValueError("Images and all masks sizes must be the same")
@@ -56,7 +57,7 @@ def getImagesDiffPercent(image1: Image.Image, image2: Image.Image, masks: list[I
     activePixelsCount = 0
     pixels = len(pixels1)
     directions = len(pixels1[0])
-    diffs = []
+    diffs: list[str] = []
     for pixelIdx in range(pixels):
         pixel1 = pixels1[pixelIdx]
         pixel2 = pixels2[pixelIdx]
@@ -87,11 +88,11 @@ def renderDelaySeconds() -> float:
     return getEdition().delayBetweenRender
 
 
-def eventsDelay():
+def eventsDelay() -> None:
     time.sleep(eventsDelaySeconds())
 
 
-def renderDelay():
+def renderDelay() -> None:
     time.sleep(renderDelaySeconds())
 
 

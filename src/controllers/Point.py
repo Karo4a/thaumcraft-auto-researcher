@@ -12,7 +12,7 @@ class P:
     x: float
     y: float
 
-    def move(self):
+    def move(self) -> None:
         mousePos = mouse.get_position()
         if mousePos[0] != self.x or mousePos[1] != self.y:
             logging.debug(f"Move mouse to point {self}")
@@ -21,7 +21,7 @@ class P:
         else:
             logging.debug(f"Move mouse to point {self} - mouse already in this pos")
 
-    def click(self, button=mouse.LEFT, shift=False):
+    def click(self, button: str = mouse.LEFT, shift: bool = False) -> None:
         self.move()
         if not shift:
             logging.debug(f"Click mouse on point {self}")
@@ -34,12 +34,12 @@ class P:
         eventsDelay()
         keyboard.release('shift')
 
-    def hold(self, button=mouse.LEFT):
+    def hold(self, button: str = mouse.LEFT) -> None:
         self.move()
         logging.debug(f"Hold mouse on point {self}")
         mouse.press(button)
 
-    def release(self, button=mouse.LEFT):
+    def release(self, button: str = mouse.LEFT) -> None:
         self.move()
         logging.debug(f"Release mouse on point {self}")
         mouse.release(button)

@@ -13,7 +13,7 @@ from configs.constants import MARGIN
 from utils import AppState
 
 
-def enroll(UI: OverlayUI):
+def enroll(UI: OverlayUI) -> None:
     UI.clearAll()
     UI.createExitButton()
 
@@ -32,7 +32,7 @@ def enroll(UI: OverlayUI):
     UI.addObject(movablePoint)
     logging.info("Enrollment successfully showed")
 
-    def onMouseMove(x, y):
+    def onMouseMove(x: int, y: int) -> None:
         if not movablePoint.isHover(targetPoint.x, targetPoint.y):
             return
         logging.info("Enrollment done")

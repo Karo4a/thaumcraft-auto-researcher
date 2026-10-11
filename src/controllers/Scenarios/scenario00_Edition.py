@@ -10,16 +10,16 @@ from controllers.Scenarios.shared import PointTextAnchor, createNextBackButtonsA
 from configs.constants import MARGIN
 from utils import AppState
 
-DEFAULT_CHOOSE_EDITION_TEXT = "Select game edition / Выберите режим игры:"
+DEFAULT_CHOOSE_EDITION_TEXT: str = "Select game edition / Выберите режим игры:"
 
 
-def chooseEdition(UI: OverlayUI):
+def chooseEdition(UI: OverlayUI) -> None:
     import editions
 
     UI.clearAll()
     UI.createExitButton()
 
-    def onSubmit():
+    def onSubmit() -> None:
         if selectedEdition[0] is None:
             logging.warning("Trying to go next but edition is not selected")
             return
@@ -39,7 +39,7 @@ def chooseEdition(UI: OverlayUI):
 
     editionNames = editions.getEditionNames()
     editionDisplayNames = list(map(editions.getEditionDisplayName, editionNames))
-    editionTextObjects = []
+    editionTextObjects: list[Text] = []
 
     selectedEditionObject: list[Text | None] = [None]
     selectedEdition: list[str | None] = [None]
@@ -53,7 +53,7 @@ def chooseEdition(UI: OverlayUI):
 
     oldInfoTextCallback = infoText.onMoveCallback
 
-    def updateTextsPosition():
+    def updateTextsPosition() -> None:
         oldInfoTextCallback()
         startCurY = nextButton.y + nextButton.h + MARGIN * 2
         curY = startCurY
@@ -76,11 +76,11 @@ def chooseEdition(UI: OverlayUI):
         editionKey = editionNames[i]
         editionName = editionDisplayNames[i]
 
-        def onClickEdition(editionObject, editionKey):
+        def onClickEdition(editionObject: Text, editionKey: str) -> None:
             logging.debug(f"Click on edition {editionKey}")
             selectEdition(editionObject, editionKey)
 
-        def selectEdition(editionObject, editionKey):
+        def selectEdition(editionObject: Text, editionKey: str) -> None:
             if selectedEditionObject[0] is not None:
                 selectedEditionObject[0].setColor(QColor('white'))
             logging.debug(f"Edition {editionKey} selected in UI. Previous selected edition is {selectedEdition[0]}")

@@ -11,11 +11,11 @@ from configs.constants import MARGIN
 from utils import AppState
 
 
-def chooseLanguage(UI: OverlayUI):
+def chooseLanguage(UI: OverlayUI) -> None:
     UI.clearAll()
     UI.createExitButton()
 
-    def onSubmit():
+    def onSubmit() -> None:
         if selectedLanguage[0] is None:
             logging.warning(f"Trying to go next but language is not selected")
             return
@@ -33,7 +33,7 @@ def chooseLanguage(UI: OverlayUI):
     )
     languagesKeys = list(TRANSLATIONS.keys())
     languagesNames = list(map(lambda trans: trans[TEXTS.languageName], TRANSLATIONS.values()))
-    languagesTextObjects = []
+    languagesTextObjects: list[Text] = []
 
     selectedLanguageObject: list[Text | None] = [None]
     selectedLanguage: list[str | None] = [None]
@@ -46,7 +46,7 @@ def chooseLanguage(UI: OverlayUI):
         logging.info(f"Selected in config language is: {oldLanguageKey}")
 
     oldInfoTextCallback = infoText.onMoveCallback
-    def updateTextsPosition():
+    def updateTextsPosition() -> None:
         oldInfoTextCallback()
         startCurY = nextButton.y + nextButton.h + MARGIN * 2
         curY = startCurY
@@ -69,11 +69,11 @@ def chooseLanguage(UI: OverlayUI):
         languageKey = languagesKeys[i]
         languageName = languagesNames[i]
 
-        def onClickLanguage(languageObject, languageKey):
+        def onClickLanguage(languageObject: Text, languageKey: str) -> None:
             logging.debug(f"Click on language {languageKey}")
             selectLanguage(languageObject, languageKey)
 
-        def selectLanguage(languageObject, languageKey):
+        def selectLanguage(languageObject: Text, languageKey: str) -> None:
             if selectedLanguageObject[0] is not None:
                 selectedLanguageObject[0].setColor(QColor('white'))
             logging.debug(f"Language {languageKey} selected in UI. Previous selected language is {selectedLanguage[0]}")

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 from PyQt5.QtGui import QColor, QPainter
 
@@ -13,15 +13,15 @@ class Circle(_Object):
             x: float,
             y: float,
             r: float,
-            color=QColor(DEFAULT_COLOR),
-            lineWidth=DEFAULT_LINE_WIDTH,
+            color: QColor = QColor(DEFAULT_COLOR),
+            lineWidth: int = DEFAULT_LINE_WIDTH,
             movable: bool = False,
             hoverable: bool = False,
             hoverColor: QColor = None,
             onMoveCallback: Callable = None,
             onClickCallback: Callable = None,
-            onClickCallbackArgs: list = [],
-            clickable: bool = None):  # , fill=None, fillOpacity=1):
+            onClickCallbackArgs: list[Any] = [],
+            clickable: bool = None) -> None:  # , fill=None, fillOpacity=1):
         self.x = x
         self.y = y
         self.r = r
@@ -39,9 +39,9 @@ class Circle(_Object):
 
         super().__init__()
 
-    def render(self, painter: QPainter):
+    def render(self, painter: QPainter) -> None:
         if not super().render(painter): return
         painter.drawEllipse(int(self.x - self.r), int(self.y - self.r), int(self.r * 2), int(self.r * 2))
 
-    def isHover(self, x: float, y: float):
+    def isHover(self, x: float, y: float) -> bool:
         return distance(x, y, self.x, self.y) <= self.r

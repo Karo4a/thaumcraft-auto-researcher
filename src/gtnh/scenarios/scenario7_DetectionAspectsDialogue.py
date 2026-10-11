@@ -1,9 +1,11 @@
 import logging
 import threading
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from PyQt5.QtGui import QColor
 
-from UI.OverlayUI import KeyboardKeys
+from UI.OverlayUI import KeyboardKeys, OverlayUI
 from UI.primitives import UIPrimitive, Image, Rect
 from UI.primitives.Text import Text
 from configs.translations import TEXTS
@@ -15,8 +17,11 @@ from gtnh.constants import RECT_ASPECTS_NUMBERS, THAUM_ASPECTS_INVENTORY_SLOTS_X
 from gtnh.mixing import selectCraftableAspects
 from utils import AppState
 
+if TYPE_CHECKING:
+    from gtnh.interactor import GtnhThaumInteractor
 
-def detectionAspectsDialogue(UI, TI):
+
+def detectionAspectsDialogue(UI: OverlayUI, TI: "GtnhThaumInteractor") -> None:
     logging.info(f"TI successfully detected all aspects")
 
     UI.clearAll()
@@ -32,7 +37,7 @@ def detectionAspectsDialogue(UI, TI):
     cellColorFree = QColor('black')
     cellColorFree.setAlpha(50)
     # draw clickable cells
-    cellsObjects = []
+    cellsObjects: list[UIPrimitive] = []
 
     openAllAspectsButton = Text(
         20,
@@ -62,10 +67,10 @@ def detectionAspectsDialogue(UI, TI):
     pausedStateDialogueObjects = [onPausedText]
     activeStateDialogueObjects = [mainText, nextButton, backButton, openAllAspectsButton, exitButton]
     pauseStateFlag = [False]
-    savedKeysCallbacks = []
+    savedKeysCallbacks: list[dict[tuple[int], tuple[Callable, list[Any]]]] = []
     currentSubState = ['main']
 
-    def switchToActiveState():
+    def switchToActiveState() -> None:
         logging.info("Switching to active state")
         pauseStateFlag[0] = False
         UI.clearKeyCallbacks()
@@ -78,7 +83,7 @@ def detectionAspectsDialogue(UI, TI):
             UI.safeSetObjectsVisibility(activeStateDialogueObjects, True)
             UI.safeSetObjectsVisibility(cellsObjects, True)
 
-    def switchToPausedState():
+    def switchToPausedState() -> None:
         logging.info("Switching to paused state")
         pauseStateFlag[0] = True
         savedKeysCallbacks.append(dict(UI.keysCallbacks))
@@ -87,7 +92,7 @@ def detectionAspectsDialogue(UI, TI):
         UI.safeSetAllObjectsVisibility(False)
         UI.safeSetObjectsVisibility(pausedStateDialogueObjects, True)
 
-    def togglePauseState():
+    def togglePauseState() -> None:
         if pauseStateFlag[0]:
             switchToActiveState()
         else:
@@ -95,7 +100,7 @@ def detectionAspectsDialogue(UI, TI):
 
     UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], togglePauseState)
 
-    def updateCurrentAspectData():
+    def updateCurrentAspectData() -> None:
         logging.info(f"Current aspect data updated on screen. Aspect: {currentAspect[0]}")
         currentAspectMainText.setText(f'{currentAspect[0].name if currentAspect[0] else AppState.translatedTexts[TEXTS.Buttons.notSelected]}, x{currentAspectCount[0] or "?"}.')
         if currentAspect[0]:
@@ -103,11 +108,11 @@ def detectionAspectsDialogue(UI, TI):
         else:
             currentAspectImage.clearImage()
 
-    def drawAspects():
+    def drawAspects() -> None:
         UI.removeObjects(cellsObjects)
         cellsObjects.clear()
 
-        def onClickCell(aspect: Aspect, cellX: int, cellY: int, rectAspectNumber: int):
+        def onClickCell(aspect: Aspect, cellX: int, cellY: int, rectAspectNumber: int) -> None:
             logging.info(f"Click on aspect to change: {aspect}, cellX: {cellX}, cellY {cellY}, rect: {rectAspectNumber}")
             currentAspectCellCoords[0] = cellX
             currentAspectCellCoords[1] = cellY
@@ -182,10 +187,10 @@ def detectionAspectsDialogue(UI, TI):
     currentAspect: list[Aspect | None] = [None]
     cellDialogueObjects: list[UIPrimitive] = []
 
-    def cancelAspectChanges():
+    def cancelAspectChanges() -> None:
         logging.info(f"Aspect changing canceled")
         switchToMainDialogue()
-    def confirmAspectChanges():
+    def confirmAspectChanges() -> None:
         logging.info(f"Aspect changing confirmed")
         prevAspect = TI.getAspectByCellCoords(*currentAspectCellCoords)
         newAspect = currentAspect[0]
@@ -197,7 +202,7 @@ def detectionAspectsDialogue(UI, TI):
         TI.setAspectIntoAvailables(newAspect, *currentAspectCellCoords)
         logging.info(f"All new available aspects: {TI.availableAspects}")
         switchToMainDialogue()
-    def confirmAspectIsNone():
+    def confirmAspectIsNone() -> None:
         logging.info(f"Aspect is none changing confirmed")
         prevAspect = TI.getAspectByCellCoords(*currentAspectCellCoords)
         logging.info(f"Previous aspect: {prevAspect}, change to None")
@@ -248,15 +253,15 @@ def detectionAspectsDialogue(UI, TI):
     if currentAspect[0]:
         currentAspectImage.setImage(currentAspect[0].pixMapImage)
 
-    def onSelectAspect(aspect: Aspect):
+    def onSelectAspect(aspect: Aspect) -> None:
         logging.info(f"Selected new aspect to selected cell {aspect}")
         currentAspect[0] = aspect
         updateCurrentAspectData()
 
     textYCoord += currentAspectMainText.h + MARGIN
     startTextYCoord = textYCoord
-    cellsDialogueAspectsTexts = []
-    cellsDialogueAspectsImages = []
+    cellsDialogueAspectsTexts: list[Text] = []
+    cellsDialogueAspectsImages: list[Image] = []
     for i in range(len(TI.allAspects)):
         aspect = TI.allAspects[i]
         textAspect = UI.addObject(Text(
@@ -287,7 +292,7 @@ def detectionAspectsDialogue(UI, TI):
             textXCoord += 250
 
     oldCellMainTextCallback = cellMainText.onMoveCallback
-    def onCellDialogueMainTextMoving():
+    def onCellDialogueMainTextMoving() -> None:
         oldCellMainTextCallback()
 
         textYCoord = cellBackButton.y + cellBackButton.h + MARGIN
@@ -320,13 +325,13 @@ def detectionAspectsDialogue(UI, TI):
     UI.setObjectsVisibility(cellDialogueObjects, False)
 
     # --- Switch states functions
-    def switchToMainDialogue():
+    def switchToMainDialogue() -> None:
         logging.info(f"Switching to a main change inventory apsects dialogue...")
         currentSubState[0] = 'main'
         UI.setObjectsVisibility(cellDialogueObjects, False)
         UI.setObjectsVisibility(mainDialogueObjects, True)
         drawAspects()
-    def switchToCellDialogue():
+    def switchToCellDialogue() -> None:
         logging.info(f"Switching to a directly change aspect dialogue...")
         currentSubState[0] = 'cell'
         UI.removeObjects(cellsObjects)
@@ -334,11 +339,11 @@ def detectionAspectsDialogue(UI, TI):
         UI.setObjectsVisibility(cellDialogueObjects, True)
         UI.clearKeyCallbacks()
 
-        def onInputNumber(number: int):
+        def onInputNumber(number: int) -> None:
             currentAspectCount[0] += str(number)
             logging.debug(f"Pressed key: {number}. New value of aspect count: {currentAspectCount[0]}")
             updateCurrentAspectData()
-        def onBackspace():
+        def onBackspace() -> None:
             if len(currentAspectCount[0]) > 0:
                 currentAspectCount[0] = currentAspectCount[0][:-1]
                 logging.debug(f"Pressed key Backspace. New value of aspect count: {currentAspectCount[0]}")
@@ -360,7 +365,7 @@ def detectionAspectsDialogue(UI, TI):
     logging.info(f"UI to change detected aspects in inventory shown")
 
 
-def openAllAspects(UI, TI):
+def openAllAspects(UI: OverlayUI, TI: "GtnhThaumInteractor") -> None:
     logging.info("Opening all aspects (GTNH)")
     UI.clearAll()
     UI.repaint()
@@ -378,13 +383,13 @@ def openAllAspects(UI, TI):
     initialNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
     maxPasses = len(TI.allAspects) + 1
 
-    def finish(mixedTotal):
+    def finish(mixedTotal: int) -> None:
         logging.info(f"Open all aspects finished. Mixed total: {mixedTotal}")
         UI.safeRemoveObject(onProcessText)
         detectionAspectsDialogue(UI, TI)
 
-    def runPass(passIndex, previousNames, mixedTotal):
-        def mixPass():
+    def runPass(passIndex: int, previousNames: set[str], mixedTotal: int) -> None:
+        def mixPass() -> None:
             mixedThisPass = 0
             try:
                 availableNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
@@ -404,7 +409,7 @@ def openAllAspects(UI, TI):
 
         threading.Thread(target=mixPass, daemon=True).start()
 
-    def afterDetection(passIndex, previousNames, mixedTotal):
+    def afterDetection(passIndex: int, previousNames: set[str], mixedTotal: int) -> None:
         currentNames = set(map(lambda aspect: aspect.name, TI.availableAspects))
         if passIndex < maxPasses and currentNames != previousNames:
             runPass(passIndex + 1, currentNames, mixedTotal)

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 from PyQt5.QtGui import QColor, QPixmap, QPainter
 
@@ -19,8 +19,8 @@ class Image(_Object):
             hoverColor: QColor = None,
             onMoveCallback: Callable = None,
             onClickCallback: Callable = None,
-            onClickCallbackArgs: list = [],
-            clickable: bool = None):
+            onClickCallbackArgs: list[Any] = [],
+            clickable: bool = None) -> None:
         self.rect = Rect(x - w / 2, y - h / 2, x + w / 2, y + h / 2)
         self.w = w
         self.h = h
@@ -46,40 +46,40 @@ class Image(_Object):
 
         super().__init__()
 
-    def setX(self, x: float):
+    def setX(self, x: float) -> None:
         self.rect.setLx(x)
         self.rect.setRx(x + self.w)
 
-    def setY(self, y: float):
+    def setY(self, y: float) -> None:
         self.rect.setLy(y)
         self.rect.setRy(y + self.h)
 
-    def setW(self, w: float):
+    def setW(self, w: float) -> None:
         self.w = w
         self.rect.setRx(self.rect.LT.x + self.w)
 
-    def setH(self, h: float):
+    def setH(self, h: float) -> None:
         self.h = h
         self.rect.setRy(self.rect.LT.y + self.h)
 
-    def render(self, painter: QPainter):
+    def render(self, painter: QPainter) -> None:
         if not super().render(painter): return
         if not self.image: return
         painter.drawPixmap(int(self.rect.LT.x), int(self.rect.LB.y), int(self.rect.w), int(self.rect.h), self.image)
 
-    def isHover(self, x: float, y: float):
+    def isHover(self, x: float, y: float) -> bool:
         if not self.visible:
             return False
         return self.rect.isHover(x, y)
 
-    def setPath(self, path: str):
+    def setPath(self, path: str) -> None:
         self.path = path
         self.image = QPixmap(path)
 
-    def setImage(self, image: QPixmap):
+    def setImage(self, image: QPixmap) -> None:
         self.path = None
         self.image = image
 
-    def clearImage(self):
+    def clearImage(self) -> None:
         self.path = None
         self.image = None

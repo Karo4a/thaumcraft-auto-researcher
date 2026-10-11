@@ -1,4 +1,4 @@
-from typing import Union
+from typing import TypeAlias
 
 from UI.primitives.Circle import Circle
 from UI.primitives.Image import Image
@@ -8,4 +8,4 @@ from UI.primitives.Rect import Rect
 from UI.primitives.Text import Text
 from UI.primitives.Image import Image
 
-UIPrimitive = Union[Point, Line, Circle, Rect, Text, Image]
+UIPrimitive: TypeAlias = Point | Line | Circle | Rect | Text | Image
