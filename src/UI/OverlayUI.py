@@ -7,15 +7,15 @@ from venv import logger
 
 import keyboard
 from PyQt5 import QtGui
-from PyQt5.QtCore import Qt, QThread, QObject, QEvent, pyqtSignal, QTimer
+from PyQt5.QtCore import Qt, QThread, QObject, QEvent, pyqtSignal, QTimer, QTimerEvent
 from PyQt5.QtGui import QPainter, QMouseEvent, QColor, QFont
 from PyQt5.QtWidgets import QApplication, QDesktopWidget, QMainWindow
 
 from UI.primitives import Point, Text, UIPrimitive
 from utils.LinkableValue import editLinkableValue
 
-FPS = 60
-FRAME_TIME = int(1000 / FPS)
+FPS: int = 60
+FRAME_TIME: int = int(1000 / FPS)
 
 
 class KeyboardKeys(Enum):
@@ -75,15 +75,15 @@ class TimedEvent:
     kwargs: dict[Any, Any]
     onChangeCallback: Callable[[int], None]
 
-    def __init__(self, timeLeftMs: int, callback: Callable[[], None], args=[], kwargs={},
-                 onChangeCallback: Callable[[int], None] = lambda timeLeft: None):
+    def __init__(self, timeLeftMs: int, callback: Callable[[], None], args: list[Any] = [], kwargs: dict[Any, Any] = {},
+                 onChangeCallback: Callable[[int], None] = lambda timeLeft: None) -> None:
         self.callback = callback
         self.timeLeftMs = timeLeftMs
         self.args = args
         self.kwargs = kwargs
         self.onChangeCallback = onChangeCallback
 
-    def decreaseTime(self, timeMs):
+    def decreaseTime(self, timeMs: int) -> None:
         self.timeLeftMs -= timeMs
 
     def execCallbackIfTime0(self) -> bool:
@@ -92,22 +92,22 @@ class TimedEvent:
             return True
         return False
 
-    def execOnChangeCallback(self):
+    def execOnChangeCallback(self) -> None:
         self.onChangeCallback(self.timeLeftMs)
 
 
 class _Window(QMainWindow):
     # Сигналы для безопасного обновления GUI из других потоков
-    sig_repaint = pyqtSignal()
-    sig_setAllObjectsVisibility = pyqtSignal(bool)
-    sig_setObjectsVisibility = pyqtSignal(list, bool)
-    sig_addObject = pyqtSignal(object)
-    sig_removeObject = pyqtSignal(object)
-    sig_removeObjects = pyqtSignal(list)
-    sig_clear = pyqtSignal()
-    sig_clearKeyCallbacks = pyqtSignal()
-    sig_clearMouseCallbacks = pyqtSignal()
-    sig_exit = pyqtSignal()
+    sig_repaint: Any = pyqtSignal()
+    sig_setAllObjectsVisibility: Any = pyqtSignal(bool)
+    sig_setObjectsVisibility: Any = pyqtSignal(list, bool)
+    sig_addObject: Any = pyqtSignal(object)
+    sig_removeObject: Any = pyqtSignal(object)
+    sig_removeObjects: Any = pyqtSignal(list)
+    sig_clear: Any = pyqtSignal()
+    sig_clearKeyCallbacks: Any = pyqtSignal()
+    sig_clearMouseCallbacks: Any = pyqtSignal()
+    sig_exit: Any = pyqtSignal()
 
     objects: list[UIPrimitive] = []
     keysCallbacks: dict[tuple[int], tuple[Callable, list[Any]]] = {}
@@ -123,7 +123,7 @@ class _Window(QMainWindow):
     app: QApplication = None
     holdingKeys: set[int] = set()
 
-    def __init__(self, opacity=1.0, w=None, h=None):
+    def __init__(self, opacity: float = 1.0, w: int | None = None, h: int | None = None) -> None:
         QMainWindow.__init__(
             self, None,
             Qt.FramelessWindowHint | Qt.MSWindowsFixedSizeDialogHint | Qt.WindowStaysOnTopHint
@@ -153,7 +153,7 @@ class _Window(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowOpacity(opacity)
 
-        def onKeyboardEvent(event: keyboard.KeyboardEvent):
+        def onKeyboardEvent(event: keyboard.KeyboardEvent) -> None:
             pressedKeyCode = event.scan_code
             if event.event_type == keyboard.KEY_UP:
                 self.holdingKeys.discard(pressedKeyCode)
@@ -176,81 +176,81 @@ class _Window(QMainWindow):
 
     # ----------------------------
     # Безопасные слоты для GUI операций
-    def _on_repaint(self):
+    def _on_repaint(self) -> None:
         self.repaint()
 
-    def _on_setAllObjectsVisibility(self, state):
+    def _on_setAllObjectsVisibility(self, state: bool) -> None:
         self.setAllObjectsVisibility(state)
 
-    def _on_setObjectsVisibility(self, objects, state):
+    def _on_setObjectsVisibility(self, objects: list[UIPrimitive], state: bool) -> None:
         self.setObjectsVisibility(objects, state)
 
-    def _on_addObject(self, obj):
+    def _on_addObject(self, obj: UIPrimitive) -> None:
         self.addObject(obj)
 
-    def _on_removeObject(self, obj):
+    def _on_removeObject(self, obj: UIPrimitive) -> None:
         self.removeObject(obj)
 
-    def _on_removeObjects(self, objects):
+    def _on_removeObjects(self, objects: list[UIPrimitive]) -> None:
         self.removeObjects(objects)
 
-    def _on_clear(self):
+    def _on_clear(self) -> None:
         self.clear()
 
-    def _on_clearKeyCallbacks(self):
+    def _on_clearKeyCallbacks(self) -> None:
         self.clearKeyCallbacks()
 
-    def _on_clearMouseCallbacks(self):
+    def _on_clearMouseCallbacks(self) -> None:
         self.clearMouseCallbacks()
 
-    def _on_exit(self):
+    def _on_exit(self) -> None:
         self.exit()
 
     # ----------------------------
     # Потокобезопасные методы (для вызова из любого потока)
-    def safeRepaint(self):
+    def safeRepaint(self) -> None:
         self.sig_repaint.emit()
 
-    def safeSetAllObjectsVisibility(self, state):
+    def safeSetAllObjectsVisibility(self, state: bool) -> None:
         self.sig_setAllObjectsVisibility.emit(state)
 
-    def safeSetObjectsVisibility(self, objects, state):
+    def safeSetObjectsVisibility(self, objects: list[UIPrimitive], state: bool) -> None:
         self.sig_setObjectsVisibility.emit(objects, state)
 
-    def safeAddObject(self, obj):
+    def safeAddObject(self, obj: UIPrimitive) -> None:
         self.sig_addObject.emit(obj)
 
-    def safeRemoveObject(self, obj):
+    def safeRemoveObject(self, obj: UIPrimitive) -> None:
         self.sig_removeObject.emit(obj)
 
-    def safeRemoveObjects(self, objects):
+    def safeRemoveObjects(self, objects: list[UIPrimitive]) -> None:
         self.sig_removeObjects.emit(objects)
 
-    def safeClear(self):
+    def safeClear(self) -> None:
         self.sig_clear.emit()
 
     # Методы со сложными типами функций используют QTimer.singleShot
-    def safeSetKeyCallback(self, keys, callback, *args):
+    def safeSetKeyCallback(self, keys: list[KeyboardKeys], callback: Callable, *args: Any) -> None:
         QTimer.singleShot(0, lambda: self.setKeyCallback(keys, callback, *args))
 
-    def safeClearKeyCallbacks(self):
+    def safeClearKeyCallbacks(self) -> None:
         self.sig_clearKeyCallbacks.emit()
 
     # Методы со сложными типами функций используют QTimer.singleShot
-    def safeSetMouseCallback(self, eventType, callback, *args):
+    def safeSetMouseCallback(self, eventType: QEvent.Type, callback: Callable, *args: Any) -> None:
         QTimer.singleShot(0, lambda: self.setMouseCallback(eventType, callback, *args))
 
-    def safeClearMouseCallbacks(self):
+    def safeClearMouseCallbacks(self) -> None:
         self.sig_clearMouseCallbacks.emit()
 
-    def safeExit(self):
+    def safeExit(self) -> None:
         self.sig_exit.emit()
     # ----------------------------
 
-    def getCenter(self):
+    def getCenter(self) -> tuple[float, float]:
         return self.w / 2, self.h / 2
 
-    def timerEvent(self, t):
+    def timerEvent(self, t: QTimerEvent) -> None:
         try:
             eventsToProcess = set(self.timedEvents)
             eventsToDelete = set()
@@ -265,7 +265,7 @@ class _Window(QMainWindow):
         except KeyboardInterrupt:
             self.exit()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         try:
             painter = QPainter(self)
             painter.setRenderHint(QPainter.Antialiasing, True)
@@ -275,7 +275,7 @@ class _Window(QMainWindow):
         except KeyboardInterrupt:
             self.exit()
 
-    def _updateObjectsHoverState(self, event: QMouseEvent, isMouseRelease: bool = False):
+    def _updateObjectsHoverState(self, event: QMouseEvent, isMouseRelease: bool = False) -> None:
         for obj in self.objects:
             obj.updateHoverState(event.x(), event.y(), isMouseRelease)
 
@@ -339,36 +339,37 @@ class _Window(QMainWindow):
 
         self._updateObjectsHoverState(event, True)
 
-    def setTimeout(self, timeoutMs: int, callback: Callable, args=[], kwargs={},
-                   onChangeCallback=lambda timeLeft: None):
+    def setTimeout(self, timeoutMs: int, callback: Callable, args: list[Any] = [], kwargs: dict[Any, Any] = {},
+                   onChangeCallback: Callable[[int], None] = lambda timeLeft: None) -> None:
         self.timedEvents.add(TimedEvent(timeoutMs, callback, args, kwargs, onChangeCallback))
 
-    def addObjectAndDeleteAfterTime(self, obj: UIPrimitive, timeoutMS: int, onChangeCallback=lambda timeLeft: None):
+    def addObjectAndDeleteAfterTime(self, obj: UIPrimitive, timeoutMS: int,
+                                    onChangeCallback: Callable[[int], None] = lambda timeLeft: None) -> UIPrimitive:
         self.setTimeout(timeoutMS, lambda: self.removeObject(obj), [], {}, onChangeCallback)
         return self.addObject(obj)
 
-    def addObject(self, obj: UIPrimitive):
+    def addObject(self, obj: UIPrimitive) -> UIPrimitive:
         if not isinstance(obj, UIPrimitive):
             raise TypeError(f"Trying to add object that is not one of UIPrimitives. Object type: {type(obj)}")
         self.objects.append(obj)
         return obj
 
-    def setAllObjectsVisibility(self, state: bool):
+    def setAllObjectsVisibility(self, state: bool) -> None:
         for object in self.objects:
             object.setVisibility(state)
 
-    def setObjectsVisibility(self, objects: list[UIPrimitive], state: bool):
+    def setObjectsVisibility(self, objects: list[UIPrimitive], state: bool) -> None:
         for object in objects:
             object.setVisibility(state)
 
-    def removeObject(self, obj: UIPrimitive):
+    def removeObject(self, obj: UIPrimitive) -> UIPrimitive:
         try:
             self.objects.remove(obj)
         except ValueError:  # list.remove(x): x not in list
             pass
         return obj
 
-    def removeObjects(self, objects: list[UIPrimitive]):
+    def removeObjects(self, objects: list[UIPrimitive]) -> list[UIPrimitive]:
         for obj in objects:
             try:
                 self.objects.remove(obj)
@@ -376,20 +377,20 @@ class _Window(QMainWindow):
                 pass
         return objects
 
-    def clear(self):
+    def clear(self) -> None:
         self.objects.clear()
 
-    def getObjectsByType(self, objectType: UIPrimitive):
+    def getObjectsByType(self, objectType: type[UIPrimitive]) -> list[UIPrimitive]:
         res = []
         for obj in self.objects:
             if isinstance(obj, objectType):
                 res.append(obj)
         return res
 
-    def setKeyCallback(self, keys: list[KeyboardKeys], callback: Callable, *args: list[Any]):
+    def setKeyCallback(self, keys: list[KeyboardKeys], callback: Callable, *args: Any) -> None:
         self.keysCallbacks[tuple(map(lambda key: key.value, keys))] = (callback, args)
 
-    def setMouseCallback(self, eventType: QEvent.Type, callback: Callable, *args: list[Any]):
+    def setMouseCallback(self, eventType: QEvent.Type, callback: Callable, *args: Any) -> None:
         if eventType == QEvent.MouseButtonPress:
             self.mousePressCallbacks.append((callback, args))
         elif eventType == QEvent.MouseButtonRelease:
@@ -397,20 +398,20 @@ class _Window(QMainWindow):
         elif eventType == QEvent.MouseMove:
             self.mouseMoveCallbacks.append((callback, args))
 
-    def clearKeyCallbacks(self):
+    def clearKeyCallbacks(self) -> None:
         self.keysCallbacks = {}
 
-    def clearMouseCallbacks(self):
+    def clearMouseCallbacks(self) -> None:
         self.mousePressCallbacks = []
         self.mouseReleaseCallbacks = []
         self.mouseMoveCallbacks = []
 
-    def clearAll(self):
+    def clearAll(self) -> None:
         self.clearKeyCallbacks()
         self.clearMouseCallbacks()
         self.clear()
 
-    def exit(self):
+    def exit(self) -> None:
         logging.info("##############")
         logging.info("Shutdown all...")
         if self.otherProcessThread:
@@ -421,11 +422,11 @@ class _Window(QMainWindow):
 
 
 class _Worker(QObject):
-    def __init__(self, foo):
+    def __init__(self, foo: Callable[[], None]) -> None:
         super().__init__()
         self.foo = foo
 
-    def work(self, app_to_shutdown):
+    def work(self, app_to_shutdown: QApplication) -> None:
         try:
             self.foo()
         except Exception as e:
@@ -434,13 +435,13 @@ class _Worker(QObject):
 
 
 class OverlayUI(_Window):
-    def __init__(self, opacity=1.0):
+    def __init__(self, opacity: float = 1.0) -> None:
         logging.info("UI initializing started...")
         self.app = QApplication(sys.argv)
         _Window.__init__(self, opacity=opacity)
         logging.info("UI successfully initialized")
 
-    def start(self, otherProcessFoo):
+    def start(self, otherProcessFoo: Callable[[], None]) -> None:
         self.otherProcessThread = QThread()
         otherProcessWorker = _Worker(otherProcessFoo)
         otherProcessWorker.moveToThread(self.otherProcessThread)

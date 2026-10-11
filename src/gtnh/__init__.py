@@ -1,6 +1,8 @@
 import json
 import os
 import sys
+from collections.abc import Callable
+from typing import Any
 
 from editions.base import BaseEdition
 from gtnh.constants import DELAY_BETWEEN_EVENTS as GTNH_DELAY_BETWEEN_EVENTS, \
@@ -18,10 +20,10 @@ def _loadJson(relativePath: str) -> dict:
 
 
 class GtnhEdition(BaseEdition):
-    id = "gtnh"
-    displayName = "GTNH"
-    delayBetweenEvents = GTNH_DELAY_BETWEEN_EVENTS
-    delayBetweenRender = GTNH_DELAY_BETWEEN_RENDER
+    id: str = "gtnh"
+    displayName: str = "GTNH"
+    delayBetweenEvents: float = GTNH_DELAY_BETWEEN_EVENTS
+    delayBetweenRender: float = GTNH_DELAY_BETWEEN_RENDER
 
     @property
     def scenarioOverrides(self) -> dict:
@@ -37,7 +39,7 @@ class GtnhEdition(BaseEdition):
     def validVersionKeys(self) -> set[str] | None:
         return {"GTNH"}
 
-    def createTI(self, UI, noPointsConfigCallback, noSelectedVersionCallback):
+    def createTI(self, UI: Any, noPointsConfigCallback: Callable, noSelectedVersionCallback: Callable) -> Any:
         from controllers.ThaumInteractor import _createTIDefault
         from gtnh.interactor import GtnhThaumInteractor
         return _createTIDefault(UI, noPointsConfigCallback, noSelectedVersionCallback,
@@ -47,7 +49,7 @@ class GtnhEdition(BaseEdition):
         from gtnh.controls import readGtnhThaumWindowControls
         return readGtnhThaumWindowControls()
 
-    def saveThaumWindowControls(self, *args, **kwargs):
+    def saveThaumWindowControls(self, *args: Any, **kwargs: Any) -> None:
         from gtnh.controls import saveGtnhThaumWindowControls
         from utils import AppState
         saveGtnhThaumWindowControls(*args, **kwargs)
@@ -65,7 +67,7 @@ class GtnhEdition(BaseEdition):
         return False
 
 
-def createEdition():
+def createEdition() -> GtnhEdition:
     return GtnhEdition()
 
 

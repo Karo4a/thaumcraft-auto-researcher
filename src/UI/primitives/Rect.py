@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 from PyQt5.QtGui import QColor, QPainter
 
@@ -19,18 +19,18 @@ class Rect(_Object):
             y1: float,
             x2: float,
             y2: float,
-            color=QColor(DEFAULT_COLOR),
-            lineWidth=DEFAULT_LINE_WIDTH,
-            dashed=False,
-            fill=None,
-            fillOpacity=1,
+            color: QColor = QColor(DEFAULT_COLOR),
+            lineWidth: int = DEFAULT_LINE_WIDTH,
+            dashed: bool = False,
+            fill: QColor = None,
+            fillOpacity: float = 1,
             movable: bool = False,
             hoverable: bool = False,
             hoverColor: QColor = None,
             onMoveCallback: Callable = None,
             onClickCallback: Callable = None,
-            onClickCallbackArgs: list = [],
-            clickable: bool = None):
+            onClickCallbackArgs: list[Any] = [],
+            clickable: bool = None) -> None:
         self.LT = Point(x1, y1, color)
         self.RT = Point(x2, y1, color)
         self.RB = Point(x2, y2, color)
@@ -55,7 +55,7 @@ class Rect(_Object):
 
         super().__init__()
 
-    def render(self, painter: QPainter):
+    def render(self, painter: QPainter) -> None:
         if not super().render(painter): return
         self.T.render(painter)
         self.R.render(painter)
@@ -63,7 +63,7 @@ class Rect(_Object):
         self.L.render(painter)
         if self.fill is not None: painter.fillRect(int(self.LT.x), int(self.LT.y), int(self.w), int(self.h), self.fill)
 
-    def isHover(self, x: float, y: float):
+    def isHover(self, x: float, y: float) -> bool:
         if not self.visible:
             return False
         return (
@@ -71,7 +71,7 @@ class Rect(_Object):
                 min(self.LT.y, self.RB.y) <= y <= max(self.LT.y, self.RB.y)
         )
 
-    def setLx(self, val):
+    def setLx(self, val: float) -> None:
         self.LT.x = val
         self.LB.x = val
         self.L.S.x = val
@@ -80,7 +80,7 @@ class Rect(_Object):
         self.B.E.x = val
         self.w = self.RB.x - self.LT.x
 
-    def setLy(self, val):
+    def setLy(self, val: float) -> None:
         self.LT.y = val
         self.LB.y = val
         self.L.E.y = val
@@ -89,7 +89,7 @@ class Rect(_Object):
         self.T.E.y = val
         self.h = self.RB.y - self.LT.y
 
-    def setRx(self, val):
+    def setRx(self, val: float) -> None:
         self.RT.x = val
         self.RB.x = val
         self.R.S.x = val
@@ -98,7 +98,7 @@ class Rect(_Object):
         self.B.S.x = val
         self.w = self.RB.x - self.LT.x
 
-    def setRy(self, val):
+    def setRy(self, val: float) -> None:
         self.RT.y = val
         self.RB.y = val
         self.L.S.y = val
@@ -107,7 +107,7 @@ class Rect(_Object):
         self.B.E.y = val
         self.h = self.RB.y - self.LT.y
 
-    def setCoords(self, xLT, yLT, xRB, yRB):
+    def setCoords(self, xLT: float, yLT: float, xRB: float, yRB: float) -> None:
         self.setLx(xLT)
         self.setLy(yLT)
         self.setRx(xRB)

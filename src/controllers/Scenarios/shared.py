@@ -10,14 +10,14 @@ from utils.LinkableValue import LinkableCoord
 from configs.constants import MARGIN
 
 
-PointTextAnchor = LinkableCoord(MARGIN, MARGIN)
+PointTextAnchor: LinkableCoord = LinkableCoord(MARGIN, MARGIN)
 
 
 def createButtonsAndText(
         UI: OverlayUI, text: str,
         buttons: list[tuple[str, Callable, list[Any]]],
         x: int = PointTextAnchor.x, y: int = PointTextAnchor.y,
-        movable=True,
+        movable: bool = True,
 ) -> list[Text]:
     mainText = Text(
         x, y,
@@ -30,7 +30,7 @@ def createButtonsAndText(
     )
     buttonsElements: list[Text] = []
 
-    def onTextMoving():
+    def onTextMoving() -> None:
         xCoord = mainText.x
         yCoord = mainText.y + mainText.h + MARGIN
         startXCoord = xCoord

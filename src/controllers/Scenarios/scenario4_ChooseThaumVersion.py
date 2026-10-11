@@ -11,11 +11,11 @@ from configs.constants import MARGIN
 from utils import AppState
 
 
-def chooseThaumVersion(UI: OverlayUI):
+def chooseThaumVersion(UI: OverlayUI) -> None:
     UI.clearAll()
     UI.createExitButton()
 
-    def onSubmit():
+    def onSubmit() -> None:
         if selectedVersion[0] is None:
             logging.warning(f"Trying to go next but thaum version is not selected")
             return
@@ -44,7 +44,7 @@ def chooseThaumVersion(UI: OverlayUI):
         logging.info(f"Selected in config version is: {oldVersion}")
 
     oldInfoTextCallback = infoText.onMoveCallback
-    def updateVersionsPosition():
+    def updateVersionsPosition() -> None:
         oldInfoTextCallback()
         startCurY = backButton.y + backButton.h + MARGIN * 2
         curY = startCurY
@@ -66,11 +66,11 @@ def chooseThaumVersion(UI: OverlayUI):
     for i in range(len(versions)):
         version = versions[i]
 
-        def onClickVersion(versionObject, version):
+        def onClickVersion(versionObject: Text, version: str) -> None:
             logging.debug(f"Click on version {version}")
             selectVersion(versionObject, version)
 
-        def selectVersion(versionObject, version):
+        def selectVersion(versionObject: Text, version: str) -> None:
             if selectedVersionObject[0] is not None:
                 selectedVersionObject[0].setColor(QColor('white'))
             logging.debug(f"Version {version} selected in UI. Previous selected version is {selectedVersion[0]}")

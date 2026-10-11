@@ -1,5 +1,5 @@
 import math
-from typing import Callable
+from typing import Any, Callable
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QPainter
@@ -16,16 +16,16 @@ class Line(_Object):
             y1: float,
             x2: float,
             y2: float,
-            color=QColor(DEFAULT_COLOR),
-            width=DEFAULT_LINE_WIDTH,
-            dashed=False,
+            color: QColor = QColor(DEFAULT_COLOR),
+            width: int = DEFAULT_LINE_WIDTH,
+            dashed: bool = False,
             movable: bool = False,
             hoverable: bool = False,
             hoverColor: QColor = None,
             onMoveCallback: Callable = None,
             onClickCallback: Callable = None,
-            onClickCallbackArgs: list = [],
-            clickable: bool = None):
+            onClickCallbackArgs: list[Any] = [],
+            clickable: bool = None) -> None:
         self.S = Point(x1, y1, color)
         self.E = Point(x2, y2, color)
         self.color = color
@@ -43,11 +43,11 @@ class Line(_Object):
             self._pen.setStyle(Qt.PenStyle.DashLine)
             self._pen.setDashPattern([8, 5])
 
-    def render(self, painter: QPainter):
+    def render(self, painter: QPainter) -> None:
         if not super().render(painter): return
         painter.drawLine(int(self.S.x), int(self.S.y), int(self.E.x), int(self.E.y))
 
-    def isHover(self, x: float, y: float):
+    def isHover(self, x: float, y: float) -> bool:
         if not self.visible:
             return False
         dxLine = self.E.x - self.S.x

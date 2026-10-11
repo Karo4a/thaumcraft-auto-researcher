@@ -3,7 +3,7 @@ import logging
 from configs.constants import MAX_ASPECTS_SOLVING_PATH_LEN
 from utils import AppState
 
-DEFAULT_INITIAL_PATH_LEN = 999999
+DEFAULT_INITIAL_PATH_LEN: int = 999999
 
 '''
 Описание работы алгоритма:
@@ -33,18 +33,18 @@ DEFAULT_INITIAL_PATH_LEN = 999999
 class AspectGraph:
     graph: dict[str, set[str]]
 
-    def __init__(self, aspect_recipes: dict[str, list[str, str]]):
+    def __init__(self, aspect_recipes: dict[str, list[str, str]]) -> None:
         self.graph = {}
         self.regenerate_graph_combinations(aspect_recipes)
 
-    def regenerate_graph_combinations(self, aspect_recipes: dict[str, list[str, str]]):
+    def regenerate_graph_combinations(self, aspect_recipes: dict[str, list[str, str]]) -> None:
         self.graph.clear()
         for aspect_name, recipe in aspect_recipes.items():
             for component in recipe:
                 if component in aspect_recipes:
                     self.add_connection(aspect_name, component)
 
-    def add_connection(self, aspect1, aspect2):
+    def add_connection(self, aspect1: str, aspect2: str) -> None:
         if aspect1 not in self.graph:
             self.graph[aspect1] = set()
         if aspect2 not in self.graph:
@@ -52,19 +52,19 @@ class AspectGraph:
         self.graph[aspect1].add(aspect2)
         self.graph[aspect2].add(aspect1)
 
-    def find_path(self, from_aspect, to_aspect, steps):
+    def find_path(self, from_aspect: str, to_aspect: str, steps: int) -> list[str] | None:
         class PathElement:
             path: list[str]
             length: int
-            def __init__(self, path: list[str], length: int):
+            def __init__(self, path: list[str], length: int) -> None:
                 self.path = path
                 self.length = length
-            def __repr__(self):
+            def __repr__(self) -> str:
                 return f"{'{'}{self.length}{'}'}"
-            def __lt__(self, other):
+            def __lt__(self, other: "PathElement") -> bool:
                 return self.length < other.length
 
-        def searchDFS(current_path_element):
+        def searchDFS(current_path_element: PathElement) -> list[str] | None:
             if current_path_element.length > steps:
                 return None
             last_node = current_path_element.path[-1]
@@ -77,24 +77,26 @@ class AspectGraph:
 
         return searchDFS(PathElement([from_aspect], 0))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"AspectsGraph(graph={self.graph})"
 
 
 class Aspect:
     name: str
     coord: tuple[int, int]
-    linked_to_initials: set
+    linked_to_initials: set["Aspect"]
 
-    def __init__(self, name, coord, linked_to_initials):
+    def __init__(self, name: str, coord: tuple[int, int], linked_to_initials: set["Aspect"]) -> None:
         self.name = name
         self.coord = coord
         self.linked_to_initials = linked_to_initials
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.name}{self.coord}"
 
-    def get_min_distance_path_to(self, target_aspect, hexagon_field_radius: int, holesSet: set[tuple[int, int]], initial_aspects: set, min_length: int = 0) -> tuple[int, set[tuple[int, int]]]:
+    def get_min_distance_path_to(self, target_aspect: "Aspect", hexagon_field_radius: int,
+                                 holesSet: set[tuple[int, int]], initial_aspects: set["Aspect"],
+                                 min_length: int = 0) -> tuple[int, set[tuple[int, int]]]:
         # Алгоритм Дейкстры
         # Для каждой клетки храним минимальное расстояние до неё. Или None, если клетка ещё не посещена
 
@@ -102,12 +104,12 @@ class Aspect:
             path: list[tuple[int, int]]
             dist: int = DEFAULT_INITIAL_PATH_LEN
             coord: tuple[int, int]
-            def __init__(self, x: int, y: int):
+            def __init__(self, x: int, y: int) -> None:
                 self.coord = (x, y)
                 self.path = []
-            def __repr__(self):
+            def __repr__(self) -> str:
                 return f"{self.coord}{'{'}{self.dist}{'}'}"
-            def __lt__(self, other):
+            def __lt__(self, other: "PathElement") -> bool:
                 return self.dist < other.dist
         cells: dict[tuple[int, int], PathElement] = {}
         unvisited_nodes: set[PathElement] = set()
@@ -134,7 +136,7 @@ class Aspect:
             else:
                 cell_neighbours = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, 1), (1, 1)]
             # Приоритизируем его, чтобы первым делом поиск производился в сторону других аспектов
-            def comparator(coord):
+            def comparator(coord: tuple[int, int]) -> int:
                 totalDiff = 0
                 for initial_aspect in initial_aspects:
                     totalDiff += abs(initial_aspect.coord[0] - coord[0])
@@ -272,7 +274,7 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
 
                 # Recursive update all aspects that linked to this
                 visited_initials = set()
-                def update_all_linked_aspects(from_initial):
+                def update_all_linked_aspects(from_initial: Aspect) -> None:
                     if (from_initial in visited_initials) or interruptingFlag[0]:
                         return
                     from_initial.linked_to_initials.update(start_initial_aspect.linked_to_initials)

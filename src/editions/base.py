@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 from configs.constants import DELAY_BETWEEN_EVENTS, DELAY_BETWEEN_RENDER
 
@@ -17,7 +17,7 @@ class BaseEdition:
         """None means 'no extra restriction' (validate against the loaded recipe map)."""
         return None
 
-    def createTI(self, UI, noPointsConfigCallback, noSelectedVersionCallback):
+    def createTI(self, UI: Any, noPointsConfigCallback: Callable, noSelectedVersionCallback: Callable) -> Any:
         from controllers.ThaumInteractor import _createTIDefault
         return _createTIDefault(UI, noPointsConfigCallback, noSelectedVersionCallback)
 
@@ -26,7 +26,7 @@ class BaseEdition:
         from utils.AppState import readJSONConfig
         return readJSONConfig(THAUM_CONTROLS_CONFIG_PATH)
 
-    def saveThaumWindowControls(self, *args, **kwargs):
+    def saveThaumWindowControls(self, *args: Any, **kwargs: Any) -> None:
         from utils import AppState
         AppState._saveVanillaThaumWindowControls(*args, **kwargs)
 

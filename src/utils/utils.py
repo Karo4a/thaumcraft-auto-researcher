@@ -2,24 +2,25 @@ import logging
 import math
 import os
 import time
+from typing import Any
 
 from PIL import Image
 
 
-def distance(x1, y1, x2, y2):
+def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
 
 class Singleton(type):
-    _instances = {}
+    _instances: dict[type, Any] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
-def createDirByFilePath(fullpath: str):
+def createDirByFilePath(fullpath: str) -> None:
     dir_path = os.path.dirname(fullpath)
     if not os.path.exists(dir_path):
         logging.info(f"Directory {dir_path} not exists. Creating...")
@@ -87,11 +88,11 @@ def renderDelaySeconds() -> float:
     return getEdition().delayBetweenRender
 
 
-def eventsDelay():
+def eventsDelay() -> None:
     time.sleep(eventsDelaySeconds())
 
 
-def renderDelay():
+def renderDelay() -> None:
     time.sleep(renderDelaySeconds())
 
 

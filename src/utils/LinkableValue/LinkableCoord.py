@@ -1,7 +1,10 @@
 from utils.LinkableValue import LinkableValue
 
 class LinkableCoord:
-    def __init__(self, x: float, y: float):
+    x: LinkableValue
+    y: LinkableValue
+
+    def __init__(self, x: float, y: float) -> None:
         self.x = LinkableValue(x)
         self.y = LinkableValue(y)
     # def __str__(self):

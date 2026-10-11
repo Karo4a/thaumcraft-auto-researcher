@@ -3,6 +3,7 @@ from math import cos, pi, sin
 
 from PyQt5.QtGui import QColor
 
+from UI.OverlayUI import OverlayUI
 from UI.primitives import Point, Line, Rect
 from configs.translations import TEXTS
 from controllers import Scenarios
@@ -13,7 +14,7 @@ from configs.constants import THAUM_HEXAGONS_SLOTS_COUNT, THAUM_ASPECTS_INVENTOR
     THAUM_ASPECTS_INVENTORY_SLOTS_Y
 
 
-def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
+def confirmThaumWindowSlots(UI: OverlayUI, LTx: float, LTy: float, RBx: float, RBy: float) -> None:
     thaumWindowWidth = RBx - LTx
     thaumWindowHeight = RBy - LTy
     logging.info(
@@ -22,7 +23,7 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
     UI.clearAll()
     UI.createExitButton()
 
-    def saveControls():
+    def saveControls() -> None:
         AppState.saveThaumWindowControls(
             pointWritingMaterials, pointPapers, rectAspectsListing.LT, rectAspectsListing.RB,
             pointAspectsScrollLeft, pointAspectsScrollRight,
@@ -69,7 +70,7 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
         horizontalListingLines.append(line)
         UI.addObject(line)
 
-    def updateListingRectCoords():
+    def updateListingRectCoords() -> None:
         rectW = rectAspectsRB.x - rectAspectsLT.x
         rectH = rectAspectsRB.y - rectAspectsLT.y
         for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
@@ -125,7 +126,7 @@ def confirmThaumWindowSlots(UI, LTx, LTy, RBx, RBy):
         deg60HexagonsLines.append(line)
         UI.addObject(line)
 
-    def updateHexagonsCoords():
+    def updateHexagonsCoords() -> None:
         rad = rectHexagonsCC.y - rectHexagonsTy
         slotSizeY = rad / (THAUM_HEXAGONS_SLOTS_COUNT // 2)
         slotSizeX = slotSizeY * cos(pi / 6)

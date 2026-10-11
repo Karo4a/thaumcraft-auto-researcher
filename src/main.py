@@ -4,8 +4,8 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler
 
-_ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_SRC_DIR: str = os.path.dirname(os.path.abspath(__file__))
 for _path in (_ROOT_DIR, _SRC_DIR):
     if _path not in sys.path:
         sys.path.insert(0, _path)
@@ -18,7 +18,7 @@ from utils import AppState
 from utils.utils import createDirByFilePath
 
 createDirByFilePath(LOG_FILE_PATH)
-loggingHandlers = [logging.handlers.RotatingFileHandler(filename=LOG_FILE_PATH, maxBytes=MAX_LOG_FILE_SIZE_BYTES, backupCount=MAX_LOG_FILES_COUNT)]
+loggingHandlers: list[logging.Handler] = [logging.handlers.RotatingFileHandler(filename=LOG_FILE_PATH, maxBytes=MAX_LOG_FILE_SIZE_BYTES, backupCount=MAX_LOG_FILES_COUNT)]
 if DEBUG:
     loggingHandlers.append(logging.StreamHandler(sys.stdout))  # output both to console and log-files
 logging.basicConfig(
@@ -28,17 +28,17 @@ logging.basicConfig(
     force=True,
 )
 
-UI = OverlayUI(opacity=1)
+UI: OverlayUI = OverlayUI(opacity=1)
 
 
-def parseArgs():
+def parseArgs() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Thaumcraft Auto Researcher")
     parser.add_argument("--edition", choices=getEditionNames(), default=None,
                         help="Game edition to use for this session (overrides saved config)")
     return parser.parse_args()
 
 
-def main(args):
+def main(args: argparse.Namespace) -> None:
     try:
         AppState.rereadLanguage()
         AppState.rereadEdition()

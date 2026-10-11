@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Callable
+from typing import Any, Callable
 
 from PIL import Image
 from PyQt5.QtGui import QColor
@@ -23,7 +23,7 @@ class GtnhThaumInteractor(ThaumInteractor):
     rectAspectsListingRB2: P
 
     def __init__(self, UI: OverlayUI, controlsConfig: dict[str, dict[str, float]],
-                 aspectsRecipes: dict[str, list[str, str]], orderedAvailableAspects: list[str]):
+                 aspectsRecipes: dict[str, list[str, str]], orderedAvailableAspects: list[str]) -> None:
         self.UI = UI
 
         c = controlsConfig
@@ -90,7 +90,7 @@ class GtnhThaumInteractor(ThaumInteractor):
         y = rectAspectsListingLT.y + slotHeight * cellY
         return x, y, x + slotWidth, y + slotHeight
 
-    def takeAspectByCellCoords(self, cellX, cellY, rectAspectNumber):
+    def takeAspectByCellCoords(self, cellX: int, cellY: int, rectAspectNumber: int) -> None:
         aspectPoint = self.inventoryCellCoordsToPixelCoords(cellX, cellY, rectAspectNumber)
         logging.info(f"Take aspect from cell ({cellX, cellY}), coordinates: {aspectPoint}")
         aspectPoint.hold()
@@ -105,7 +105,7 @@ class GtnhThaumInteractor(ThaumInteractor):
                 return aspect
         return None
 
-    def setAspectIntoAvailables(self, aspect: Aspect, cellX: int, cellY: int, rectAspectNumber: int):
+    def setAspectIntoAvailables(self, aspect: Aspect, cellX: int, cellY: int, rectAspectNumber: int) -> None:
         prevAspect = self.getAspectByCellCoords(cellX, cellY, rectAspectNumber)
         aspect.cellX = cellX
         aspect.cellY = cellY
@@ -132,7 +132,7 @@ class GtnhThaumInteractor(ThaumInteractor):
             self.availableAspects.insert(cellsBeforeCount, aspect)
             logging.info(f"Aspect {aspect} successfully inserted on idx {cellsBeforeCount}")
 
-        def removeAspectDuplicates():
+        def removeAspectDuplicates() -> None:
             for a in self.availableAspects:
                 if a.uid == aspect.uid and a.cellX != cellX and a.cellY != cellY:
                     self.availableAspects.remove(a)
@@ -141,7 +141,7 @@ class GtnhThaumInteractor(ThaumInteractor):
 
         removeAspectDuplicates()
 
-    def takeAspect(self, aspect: Aspect):
+    def takeAspect(self, aspect: Aspect) -> None:
         if not self.mixAspect(aspect, 1):
             logging.critical(f"Cannot mix aspect {aspect.name}. Take skipped")
             return
@@ -149,7 +149,7 @@ class GtnhThaumInteractor(ThaumInteractor):
         self.takeAspectByCellCoords(aspect.cellX, aspect.cellY, aspect.rectAspectsNumber)
         aspect.count -= 1
 
-    def mixAspect(self, aspect: Aspect, targetCount=3) -> bool:
+    def mixAspect(self, aspect: Aspect, targetCount: int = 3) -> bool:
         """
         Создаёт аспект миксом по рецепту (GTNH: drag/right-click).
         Возвращает True, если микс выполнен или аспекта уже достаточно, False — если микс невозможен.
@@ -186,7 +186,7 @@ class GtnhThaumInteractor(ThaumInteractor):
             aspect2.count -= mixingTimes
         return True
 
-    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]):
+    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]) -> None:
         logging.info(f"Filling aspects by link map: {aspectsMap}")
 
         aspectsListMap = list(aspectsMap.items())
@@ -200,7 +200,7 @@ class GtnhThaumInteractor(ThaumInteractor):
             self.putAspect(*coords)
             eventsDelay()
 
-    def updateAvailableAspectsInInventory(self, onFinishCallback: Callable, callbackArgs=[]):
+    def updateAvailableAspectsInInventory(self, onFinishCallback: Callable, callbackArgs: list[Any] = []) -> None:
         logging.info("Detecting available aspects in inventory... (GTNH)")
         self.availableAspects = []
 
@@ -212,7 +212,7 @@ class GtnhThaumInteractor(ThaumInteractor):
         debugHighlightingRect = self._addDebugHighlightingRect()
         self.UI.repaint()
 
-        def detectAspects(screenshotImage: Image.Image, rectAspectsNumber: int):
+        def detectAspects(screenshotImage: Image.Image, rectAspectsNumber: int) -> None:
             rectLT = self.getRectAspectListingLTbyNumber(rectAspectsNumber)
             rectRB = self.getRectAspectListingRBbyNumber(rectAspectsNumber)
             slotWidth = (rectRB.x - rectLT.x) / THAUM_ASPECTS_INVENTORY_SLOTS_X
@@ -243,7 +243,7 @@ class GtnhThaumInteractor(ThaumInteractor):
 
             logging.info(f"All found aspects: {self.availableAspects}")
 
-        def exitWithSort():
+        def exitWithSort() -> None:
             self.UI.removeObject(debugHighlightingRect)
             self.availableAspects.sort(key=lambda a: a.uid)
             logging.info("All detected available aspects was sorted")

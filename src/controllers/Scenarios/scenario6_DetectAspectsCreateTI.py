@@ -10,11 +10,11 @@ from utils import AppState
 from utils.utils import renderDelay
 
 
-def beReadyForCreatingTI(UI: OverlayUI):
+def beReadyForCreatingTI(UI: OverlayUI) -> None:
     UI.clearAll()
     UI.createExitButton()
 
-    def startCreatingTI():
+    def startCreatingTI() -> None:
         UI.clearAll()
         UI.createExitButton()
         createButtonsAndText(
@@ -36,7 +36,7 @@ def beReadyForCreatingTI(UI: OverlayUI):
     )
 
 
-def directlyCreateTI(UI):
+def directlyCreateTI(UI: OverlayUI) -> None:
     logging.info(f"Create TI")
     TI = createTI(UI, Scenarios.configureThaumWindowCoords, Scenarios.chooseThaumVersion)
     if TI is None:

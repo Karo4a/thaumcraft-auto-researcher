@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from typing import Any
 
 from configs.constants import LANGUAGE_CONFIG_PATH, THAUM_VERSION_CONFIG_PATH, THAUM_ASPECT_RECIPES_CONFIG_PATH, \
     THAUM_ADDONS_ASPECT_RECIPES_CONFIG_PATH, THAUM_CONTROLS_CONFIG_PATH, THAUM_ASPECTS_ORDER_CONFIG_PATH, \
@@ -10,7 +11,7 @@ from utils.LinkableValue import linkableValueDumpsToJSON
 from utils.utils import createDirByFilePath
 
 
-def readJSONConfig(fullpath: str):
+def readJSONConfig(fullpath: str) -> dict | None:
     if not os.path.isfile(fullpath):
         logging.warning(f"Config {fullpath} not exists")
         return None
@@ -24,14 +25,14 @@ def readJSONConfig(fullpath: str):
     return config
 
 
-def saveJSONConfig(fullpath: str, jsonToSave: dict):
+def saveJSONConfig(fullpath: str, jsonToSave: dict) -> None:
     createDirByFilePath(fullpath)
     with open(fullpath, 'w') as file:
         json.dump(jsonToSave, file, indent=4, ensure_ascii=False, default=linkableValueDumpsToJSON)
 
 
 class _AppState:
-    def __init__(self):
+    def __init__(self) -> None:
         self.selectedLanguage: None | str = None
         self.translatedTexts: dict[str, str] = {}
 
@@ -49,7 +50,7 @@ class _AppState:
         self.thaumWindowControls: dict[str, str] | None = None
 
     # -------------------------
-    def rereadLanguage(self):
+    def rereadLanguage(self) -> None:
         # get selected language
         readed = readJSONConfig(LANGUAGE_CONFIG_PATH)
         if readed is None:
@@ -65,7 +66,7 @@ class _AppState:
             self.translatedTexts = {}
         logging.debug(f"Selected language and translations successfully rereaded. Selected language: {self.selectedLanguage}")
 
-    def saveLanguage(self, language: str):
+    def saveLanguage(self, language: str) -> None:
         saveJSONConfig(LANGUAGE_CONFIG_PATH, {
             'language': language,
         })
@@ -73,7 +74,7 @@ class _AppState:
         self.rereadLanguage()
 
     # -------------------------
-    def rereadEdition(self):
+    def rereadEdition(self) -> None:
         from editions import getEditionNames
         readed = readJSONConfig(EDITION_CONFIG_PATH)
         if readed is None:
@@ -86,7 +87,7 @@ class _AppState:
             return
         logging.debug(f"Selected edition rereaded: {self.selectedEdition}")
 
-    def saveEdition(self, edition: str):
+    def saveEdition(self, edition: str) -> None:
         saveJSONConfig(EDITION_CONFIG_PATH, {
             'edition': edition,
         })
@@ -94,7 +95,7 @@ class _AppState:
         self.rereadEdition()
 
     # -------------------------
-    def rereadThaumVersion(self):
+    def rereadThaumVersion(self) -> None:
         from editions import getEdition
         edition = getEdition()
 
@@ -151,7 +152,7 @@ class _AppState:
             self.aspectRecipes |= addonRecipes
         logging.debug(f"Thaum version and aspects recipes successfully rereaded. Selected version: {self.selectedThaumVersion}")
 
-    def saveThaumVersion(self, version: str):
+    def saveThaumVersion(self, version: str) -> None:
         saveJSONConfig(THAUM_VERSION_CONFIG_PATH, {
             'version': version,
         })
@@ -159,19 +160,21 @@ class _AppState:
         self.rereadThaumVersion()
 
     # -------------------------
-    def rereadThaumWindowControls(self):
+    def rereadThaumWindowControls(self) -> None:
         from editions import getEdition
         self.thaumWindowControls = getEdition().readThaumWindowControls()
         logging.debug(f"Thaum window controls rereaded")
 
-    def saveThaumWindowControls(self, *args, **kwargs):
+    def saveThaumWindowControls(self, *args: Any, **kwargs: Any) -> None:
         from editions import getEdition
         getEdition().saveThaumWindowControls(*args, **kwargs)
 
-    def _saveVanillaThaumWindowControls(self, pointWritingMaterials, pointPapers, rectAspectsListingLT, rectAspectsListingRB,
-                                        pointAspectsScrollLeft, pointAspectsScrollRight,
-                                        pointAspectsMixLeft, pointAspectsMixCreate, pointAspectsMixRight, rectInventoryLT,
-                                        rectInventoryRB, rectHexagonsCC, hexagonSlotSizeY):
+    def _saveVanillaThaumWindowControls(self, pointWritingMaterials: Any, pointPapers: Any, rectAspectsListingLT: Any,
+                                        rectAspectsListingRB: Any,
+                                        pointAspectsScrollLeft: Any, pointAspectsScrollRight: Any,
+                                        pointAspectsMixLeft: Any, pointAspectsMixCreate: Any, pointAspectsMixRight: Any,
+                                        rectInventoryLT: Any,
+                                        rectInventoryRB: Any, rectHexagonsCC: Any, hexagonSlotSizeY: float) -> None:
         saveJSONConfig(THAUM_CONTROLS_CONFIG_PATH, {
             "pointWritingMaterials": {"x": pointWritingMaterials.x, "y": pointWritingMaterials.y},
             "pointPapers": {"x": pointPapers.x, "y": pointPapers.y},
@@ -191,11 +194,11 @@ class _AppState:
         self.rereadThaumWindowControls()
 
     # -------------------------
-    def rereadAllConfigs(self):
+    def rereadAllConfigs(self) -> None:
         self.rereadLanguage()
         self.rereadEdition()
         self.rereadThaumVersion()
         self.rereadThaumWindowControls()
 
 # Создаем единственный экземпляр для экспорта
-AppState = _AppState()
+AppState: _AppState = _AppState()

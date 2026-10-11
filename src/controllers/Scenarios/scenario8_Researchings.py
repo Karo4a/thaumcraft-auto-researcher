@@ -22,7 +22,7 @@ from configs.constants import MARGIN, LINK_GENERATION_MAX_TIME_MS, MAX_SOLVE_RET
 from utils.utils import renderDelay, eventsDelay
 
 
-def runResearching(UI: OverlayUI, TI: ThaumInteractor):
+def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     logging.info(f"Run researching scenario started")
     UI.clearAll()
     exitButtonObject = UI.createExitButton()
@@ -35,11 +35,11 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         aspect: Aspect | None = None
         isNone: bool = False
 
-        def __init__(self, x: int, y: int):
+        def __init__(self, x: int, y: int) -> None:
             self.x = x
             self.y = y
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             return f"Cell([{self.x}, {self.y}], aspect={self.aspect}, isNone={self.isNone})"
 
     cells: list[Cell] = []
@@ -64,7 +64,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
     # --- Cells dialogue elements
     cellSettingsStateDialogueObjects = []
 
-    def updateDetectingField():
+    def updateDetectingField() -> None:
         logging.debug(f'Run detecting aspects on field')
         UI.safeSetAllObjectsVisibility(False)
         UI.safeSetObjectsVisibility([exitButtonObject], True)
@@ -73,7 +73,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         (existingAspects[0], noneHexagons[0], freeHexagons[0]) = TI.getExistingAspectsOnField()
         logging.debug(f'Aspects on field detected')
 
-    def updateSolving(interruptingFlag: list[bool] = [False]):
+    def updateSolving(interruptingFlag: list[bool] = [False]) -> None:
         logging.debug(f'Starts updating solve...')
 
         # Start solving
@@ -98,7 +98,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         # Rerender cells images
         updateCellsImage()
 
-    def updateCellsImage():
+    def updateCellsImage() -> None:
         # Fill cells by gotten solve
         aspectsCoords = currentLinkMap[0].keys()
         for cell in cells:
@@ -125,7 +125,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
                 cell.object.setColor(cellColorNone)
         logging.debug(f'New images placed to all cells')
 
-    def onClickCellIsNone():
+    def onClickCellIsNone() -> None:
         logging.debug(f'Click on "Cell is none". Selected cell: {selectedCell[0]}')
         if selectedCell[0] is None:
             return
@@ -137,7 +137,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         updateSolving()
         switchToActiveState()
 
-    def onClickCellIsAspect(aspect: Aspect):
+    def onClickCellIsAspect(aspect: Aspect) -> None:
         logging.debug(f'Click on "Cell is aspect {aspect}". Selected cell: {selectedCell[0]}')
         if selectedCell[0] is None:
             return
@@ -149,7 +149,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         updateSolving()
         switchToActiveState()
 
-    def onClickCellIsFree():
+    def onClickCellIsFree() -> None:
         logging.debug(f'Click on "Cell is free". Selected cell: {selectedCell[0]}')
         if selectedCell[0] is None:
             return
@@ -161,7 +161,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         updateSolving()
         switchToActiveState()
 
-    def startCellDialogue(cell: Cell):
+    def startCellDialogue(cell: Cell) -> None:
         switchToCellSettingsState()
         if selectedCell[0]:
             newColor = QColor(selectedCell[0].object.color)
@@ -174,7 +174,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         cell.object.setColor(newColor)
         logging.debug(f'Showed cell state selecting dialogue')
 
-    def exitCellDialogue():
+    def exitCellDialogue() -> None:
         switchToActiveState()
         if not selectedCell[0]:
             return
@@ -275,7 +275,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
     UI.setObjectsVisibility(cellSettingsStateDialogueObjects, False)
 
     # --- Active state elements
-    def insertAndPrepareNextIteration():
+    def insertAndPrepareNextIteration() -> None:
         logging.info("Inserting and preparing for next iteration")
         if multyResearchesCountLeft[0] > 0:
             UI.safeSetAllObjectsVisibility(False)
@@ -297,7 +297,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         updateCellsImage()
         switchToActiveState()
 
-    def startPuttingLinkMap():
+    def startPuttingLinkMap() -> None:
         UI.safeSetAllObjectsVisibility(False)
 
         onProcessText = Text(
@@ -317,7 +317,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         for aspectCoords in existingAspects[0].keys():
             del finalLinkMap[aspectCoords]
 
-        def startPuttingAspects():
+        def startPuttingAspects() -> None:
             logging.info("Putting aspects started...")
             TI.fillByLinkMap(finalLinkMap)
             logging.info("Putting aspects done")
@@ -335,7 +335,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
     # vars for changing between render functions
     isInUpdatingAspects = [False]
     curUpdatingUid = [0]
-    def regenerateLinkMap():
+    def regenerateLinkMap() -> None:
         if isInUpdatingAspects[0]:
             return
         isInUpdatingAspects[0] = True
@@ -346,7 +346,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         curUpdatingUid[0] += 1
         interruptingFlag = [False]
 
-        def interruptSolving(curUid):  # interrupt solving after LINK_GENERATION_MAX_TIME_MS
+        def interruptSolving(curUid: int) -> None:  # interrupt solving after LINK_GENERATION_MAX_TIME_MS
             if isInUpdatingAspects[0] and curUid == curUpdatingUid[0]:
                 interruptingFlag[0] = True
 
@@ -358,10 +358,10 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         isInUpdatingAspects[0] = False
 
     # base dialogue
-    def onClickSwitchToMultyResearches():
+    def onClickSwitchToMultyResearches() -> None:
         switchToMultyResearchesState()
 
-    def onClickDonate():
+    def onClickDonate() -> None:
         switchToDonateState()
 
     activeStateDialogueObjects = createButtonsAndText(
@@ -377,10 +377,10 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
     )
 
     # --- Multy researches state elements
-    def onClickBack():
+    def onClickBack() -> None:
         switchToActiveState()
 
-    def onClickNumber(researchesCount: int):
+    def onClickNumber(researchesCount: int) -> None:
         multyResearchesCountLeft[0] = researchesCount
         TI.resetWorkingSlot()
         renderDelay()
@@ -405,10 +405,10 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
     )
 
     # --- Donate state elements
-    def onClickDonateRussia():
+    def onClickDonateRussia() -> None:
         QDesktopServices.openUrl(QUrl(DONATE_URL_RUSSIA))
 
-    def onClickDonateGlobal():
+    def onClickDonateGlobal() -> None:
         clipboard = QApplication.clipboard()
         clipboard.setText(DONATE_CRYPTO_ID_GLOBAL)
 
@@ -435,7 +435,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
     pausedStateDialogueObjects = [onPausedText]
 
     # --- Switch between states functions
-    def switchToActiveState():
+    def switchToActiveState() -> None:
         logging.info("Switching to active state")
         UI.clearKeyCallbacks()
         UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], switchToPausedState)
@@ -444,14 +444,14 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         UI.setObjectsVisibility(cellsObjects, True)
         exitButtonObject.setVisibility(True)
 
-    def switchToPausedState():
+    def switchToPausedState() -> None:
         logging.info("Switching to paused state")
         UI.clearKeyCallbacks()
         UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], switchToActiveState)
         UI.setAllObjectsVisibility(False)
         UI.setObjectsVisibility(pausedStateDialogueObjects, True)
 
-    def switchToCellSettingsState():
+    def switchToCellSettingsState() -> None:
         logging.info("Switching to cell settings state")
         UI.clearKeyCallbacks()
         UI.setKeyCallback([KeyboardKeys.n], onClickCellIsNone)
@@ -462,7 +462,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         UI.setObjectsVisibility(cellsObjects, True)
         exitButtonObject.setVisibility(True)
 
-    def switchToMultyResearchesState():
+    def switchToMultyResearchesState() -> None:
         logging.info("Switching to multy researches state")
         UI.clearKeyCallbacks()
         UI.setKeyCallback([KeyboardKeys.esc], switchToActiveState)
@@ -470,7 +470,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor):
         UI.setObjectsVisibility(multyResearchesObjects, True)
         exitButtonObject.setVisibility(True)
 
-    def switchToDonateState():
+    def switchToDonateState() -> None:
         logging.info("Switching to donate state")
         UI.clearKeyCallbacks()
         UI.setKeyCallback([KeyboardKeys.esc], switchToActiveState)

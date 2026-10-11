@@ -10,7 +10,7 @@ class OnnxClassification:
             class_names: list[str],
             img_height: int,
             img_width: int,
-    ):
+    ) -> None:
         self.model = onnxruntime.InferenceSession(model_path)
         self.class_names = class_names
         inputs = self.model.get_inputs()

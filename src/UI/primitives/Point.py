@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Any, Callable
 
 from PyQt5.QtGui import QColor, QPainter
 
@@ -12,16 +12,16 @@ class Point(_Object):
             self,
             x: float,
             y: float,
-            size=DEFAULT_POINT_SIZE,
-            color=QColor(DEFAULT_COLOR),
-            lineWidth=DEFAULT_LINE_WIDTH,
-            movable=False,
+            size: int = DEFAULT_POINT_SIZE,
+            color: QColor = QColor(DEFAULT_COLOR),
+            lineWidth: int = DEFAULT_LINE_WIDTH,
+            movable: bool = False,
             hoverable: bool = False,
             hoverColor: QColor = None,
             onMoveCallback: Callable = None,
             onClickCallback: Callable = None,
-            onClickCallbackArgs: list = [],
-            clickable: bool = None):
+            onClickCallbackArgs: list[Any] = [],
+            clickable: bool = None) -> None:
         self.x = x
         self.y = y
         self.size = size
@@ -37,7 +37,7 @@ class Point(_Object):
 
         super().__init__()
 
-    def render(self, painter: QPainter):
+    def render(self, painter: QPainter) -> None:
         if not super().render(painter): return
         painter.drawLine(int(self.x), int(self.y - self.size / 2), int(self.x), int(self.y + self.size / 2))
         painter.drawLine(int(self.x - self.size / 2), int(self.y), int(self.x + self.size / 2), int(self.y))
@@ -48,7 +48,7 @@ class Point(_Object):
             painter.drawEllipse(int(self.x - self.size / 3), int(self.y - self.size / 3), int(self.size / 3 * 2),
                                 int(self.size / 3 * 2))
 
-    def isHover(self, x: float, y: float):
+    def isHover(self, x: float, y: float) -> bool:
         if not self.visible:
             return False
         return distance(x, y, float(self.x), float(self.y)) <= (self.size / 2)
