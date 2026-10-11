@@ -33,7 +33,7 @@ def chooseLanguage(UI: OverlayUI) -> None:
     )
     languagesKeys = list(TRANSLATIONS.keys())
     languagesNames = list(map(lambda trans: trans[TEXTS.languageName], TRANSLATIONS.values()))
-    languagesTextObjects = []
+    languagesTextObjects: list[Text] = []
 
     selectedLanguageObject: list[Text | None] = [None]
     selectedLanguage: list[str | None] = [None]

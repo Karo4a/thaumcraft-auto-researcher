@@ -32,7 +32,7 @@ def remove_same_spot_predictions(digit_predictions: list[ObjectPrediction]) -> l
     """
     MIN_VALID_DIFF = 2.0
     prev_x = -666
-    result = []
+    result: list[ObjectPrediction] = []
     digit_predictions.sort(key=lambda pred: pred.x)
     for digit_pred in digit_predictions:
         if abs(prev_x - digit_pred.x) < MIN_VALID_DIFF:
@@ -45,8 +45,8 @@ def remove_same_spot_predictions(digit_predictions: list[ObjectPrediction]) -> l
 
 
 def splitAspectsAndDigits(predictions: list[ObjectPrediction]) -> tuple[list[ObjectPrediction], list[ObjectPrediction]]:
-    aspects = []
-    digits = []
+    aspects: list[ObjectPrediction] = []
+    digits: list[ObjectPrediction] = []
     for prediction in predictions:
         if is_digit(prediction):
             digits.append(prediction)
@@ -56,7 +56,7 @@ def splitAspectsAndDigits(predictions: list[ObjectPrediction]) -> tuple[list[Obj
 
 
 def filterByMaxConfidence(predictions: list[ObjectPrediction]) -> list[ObjectPrediction]:
-    filteredAspects = {}
+    filteredAspects: dict[str, ObjectPrediction] = {}
     for prediction in predictions:
         aspect = filteredAspects.get(prediction.predictionName)
         if aspect is None or prediction.confidence > aspect.confidence:
@@ -68,9 +68,9 @@ def group_aspects_and_digits(
         predictionsAspect: list[ObjectPrediction],
         predictionsDigit: list[ObjectPrediction],
 ) -> list[tuple[ObjectPrediction, list[ObjectPrediction]]]:
-    result = []
+    result: list[tuple[ObjectPrediction, list[ObjectPrediction]]] = []
     for aspect_pred in predictionsAspect:
-        aspect_digits = []
+        aspect_digits: list[ObjectPrediction] = []
         for digit_pred in predictionsDigit:
             if prediction_inside_prediction(digit_pred, aspect_pred):
                 aspect_digits.append(digit_pred)
@@ -83,7 +83,7 @@ def aspects_count(predictionsAspect: list[ObjectPrediction], predictionsDigit: l
     Каждому аспекту подставляет его распознанное количество.
     Вызывать после filterByMaxConfidence: дубли одного аспекта перезаписываются (последний побеждает).
     """
-    counts = dict()
+    counts: dict[str, int] = dict()
     for aspect_pred, aspect_digits_pred in group_aspects_and_digits(predictionsAspect, predictionsDigit):
         aspect_digits_pred = remove_same_spot_predictions(aspect_digits_pred)
         aspect_digits_pred.sort(key=lambda pred: pred.x)

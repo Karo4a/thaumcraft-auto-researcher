@@ -32,7 +32,7 @@ def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
     cellColorFree = QColor('black')
     cellColorFree.setAlpha(50)
     # draw clickable cells
-    cellsObjects = []
+    cellsObjects: list[UIPrimitive] = []
 
     def updateCurrentAspectData() -> None:
         logging.info(f"Current aspect data updated on screen. Aspect: {currentAspect[0]}")
@@ -242,8 +242,8 @@ def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
 
     textYCoord += currentAspectMainText.h + MARGIN
     startTextYCoord = textYCoord
-    cellsDialogueAspectsTexts = []
-    cellsDialogueAspectsImages = []
+    cellsDialogueAspectsTexts: list[Text] = []
+    cellsDialogueAspectsImages: list[Image] = []
     for i in range(len(TI.allAspects)):
         aspect = TI.allAspects[i]
         textAspect = UI.addObject(Text(

@@ -57,13 +57,13 @@ def confirmThaumWindowSlots(UI: OverlayUI, LTx: float, LTy: float, RBx: float, R
     rectAspectsListing = UI.addObject(
         Rect(rectAspectsLT.x, rectAspectsLT.y, rectAspectsRB.x, rectAspectsRB.y, dashed=True, color=QColor('lime')))
 
-    verticalListingLines = []
+    verticalListingLines: list[Line] = []
     for x in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_X):
         xVal = rectAspectsLT.x + x * rectAspectsListing.w / THAUM_ASPECTS_INVENTORY_SLOTS_X
         line = Line(xVal, rectAspectsLT.y, xVal, rectAspectsRB.y, dashed=True, color=QColor('lime'), width=1)
         verticalListingLines.append(line)
         UI.addObject(line)
-    horizontalListingLines = []
+    horizontalListingLines: list[Line] = []
     for y in range(1, THAUM_ASPECTS_INVENTORY_SLOTS_Y):
         yVal = rectAspectsLT.y + y * rectAspectsListing.h / THAUM_ASPECTS_INVENTORY_SLOTS_Y
         line = Line(rectAspectsLT.x, yVal, rectAspectsRB.x, yVal, dashed=True, color=QColor('lime'), width=1)
@@ -110,9 +110,9 @@ def confirmThaumWindowSlots(UI: OverlayUI, LTx: float, LTy: float, RBx: float, R
 
     rectHexagonsCC = LinkableCoord(LTx + Ws * 10, LTy + Hs * 5)
     rectHexagonsTy = LinkableValue(LTy + Hs * 1.05)
-    verticalHexagonsLines = []
-    deg30HexagonsLines = []
-    deg60HexagonsLines = []
+    verticalHexagonsLines: list[Line] = []
+    deg30HexagonsLines: list[Line] = []
+    deg60HexagonsLines: list[Line] = []
     for i in range(THAUM_HEXAGONS_SLOTS_COUNT):
         line = Line(0, 0, 0, 0, dashed=True, color=QColor('lightblue'), width=1)
         verticalHexagonsLines.append(line)

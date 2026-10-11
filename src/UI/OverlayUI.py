@@ -253,7 +253,7 @@ class _Window(QMainWindow):
     def timerEvent(self, t: QTimerEvent) -> None:
         try:
             eventsToProcess = set(self.timedEvents)
-            eventsToDelete = set()
+            eventsToDelete: set[TimedEvent] = set()
             for event in eventsToProcess:
                 event.decreaseTime(FRAME_TIME)
                 event.execOnChangeCallback()
@@ -381,7 +381,7 @@ class _Window(QMainWindow):
         self.objects.clear()
 
     def getObjectsByType(self, objectType: type[UIPrimitive]) -> list[UIPrimitive]:
-        res = []
+        res: list[UIPrimitive] = []
         for obj in self.objects:
             if isinstance(obj, objectType):
                 res.append(obj)

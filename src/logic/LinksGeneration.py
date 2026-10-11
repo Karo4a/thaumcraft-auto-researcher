@@ -177,7 +177,7 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
             available_aspect_recipes[recipe_aspect] = aspect_recipes[recipe_aspect]
     aspect_graph = AspectGraph(available_aspect_recipes)
 
-    result = {}
+    result: dict[tuple[int, int], str] = {}
     initial_aspects: set[Aspect] = set()
     aspects_on_field: set[Aspect] = set()
     maxDistFromCenter = 0
@@ -264,7 +264,7 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
 
                 logging.debug("#---4. Fill gotten aspects and prepare to next step")
                 # Объединяем linked_to, и записываем в оба исходых аспекта один и тот же этот список)
-                all_added_aspects = set()
+                all_added_aspects: set[Aspect] = set()
                 for i in range(1, target_path_len):
                     result[coordsPath[i]] = aspects_path[i]
                     addedAspect = Aspect(aspects_path[i], coordsPath[i], start_initial_aspect.linked_to_initials)
@@ -273,7 +273,7 @@ def generateLinkMap(existing_aspects: dict[tuple[int, int], str], holes_set: set
                 start_initial_aspect.linked_to_initials.update(end_initial_aspect.linked_to_initials)
 
                 # Recursive update all aspects that linked to this
-                visited_initials = set()
+                visited_initials: set[Aspect] = set()
                 def update_all_linked_aspects(from_initial: Aspect) -> None:
                     if (from_initial in visited_initials) or interruptingFlag[0]:
                         return

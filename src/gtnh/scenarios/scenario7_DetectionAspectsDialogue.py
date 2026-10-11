@@ -1,5 +1,7 @@
 import logging
 import threading
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from PyQt5.QtGui import QColor
 
@@ -8,7 +10,6 @@ from UI.primitives import UIPrimitive, Image, Rect
 from UI.primitives.Text import Text
 from configs.translations import TEXTS
 from controllers.Aspect import Aspect
-from controllers.ThaumInteractor import ThaumInteractor
 from controllers import Scenarios
 from controllers.Scenarios.shared import createNextBackButtonsAndText, createButtonsAndText
 from configs.constants import MARGIN
@@ -16,8 +17,11 @@ from gtnh.constants import RECT_ASPECTS_NUMBERS, THAUM_ASPECTS_INVENTORY_SLOTS_X
 from gtnh.mixing import selectCraftableAspects
 from utils import AppState
 
+if TYPE_CHECKING:
+    from gtnh.interactor import GtnhThaumInteractor
 
-def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
+
+def detectionAspectsDialogue(UI: OverlayUI, TI: "GtnhThaumInteractor") -> None:
     logging.info(f"TI successfully detected all aspects")
 
     UI.clearAll()
@@ -33,7 +37,7 @@ def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
     cellColorFree = QColor('black')
     cellColorFree.setAlpha(50)
     # draw clickable cells
-    cellsObjects = []
+    cellsObjects: list[UIPrimitive] = []
 
     openAllAspectsButton = Text(
         20,
@@ -63,7 +67,7 @@ def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
     pausedStateDialogueObjects = [onPausedText]
     activeStateDialogueObjects = [mainText, nextButton, backButton, openAllAspectsButton, exitButton]
     pauseStateFlag = [False]
-    savedKeysCallbacks = []
+    savedKeysCallbacks: list[dict[tuple[int], tuple[Callable, list[Any]]]] = []
     currentSubState = ['main']
 
     def switchToActiveState() -> None:
@@ -256,8 +260,8 @@ def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
 
     textYCoord += currentAspectMainText.h + MARGIN
     startTextYCoord = textYCoord
-    cellsDialogueAspectsTexts = []
-    cellsDialogueAspectsImages = []
+    cellsDialogueAspectsTexts: list[Text] = []
+    cellsDialogueAspectsImages: list[Image] = []
     for i in range(len(TI.allAspects)):
         aspect = TI.allAspects[i]
         textAspect = UI.addObject(Text(
@@ -361,7 +365,7 @@ def detectionAspectsDialogue(UI: OverlayUI, TI: ThaumInteractor) -> None:
     logging.info(f"UI to change detected aspects in inventory shown")
 
 
-def openAllAspects(UI: OverlayUI, TI: ThaumInteractor) -> None:
+def openAllAspects(UI: OverlayUI, TI: "GtnhThaumInteractor") -> None:
     logging.info("Opening all aspects (GTNH)")
     UI.clearAll()
     UI.repaint()

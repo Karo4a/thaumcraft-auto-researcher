@@ -84,7 +84,7 @@ def createNextBackButtonsAndText(
         overrideNextText: str = None,
         overrideBackText: str = None,
 ) -> tuple[Text, Text | None, Text | None]:
-    buttonsConfig = []
+    buttonsConfig: list[tuple[str, Callable, list[Any]]] = []
     if backCallback is not None:
         buttonsConfig.append((
             overrideBackText or AppState.translatedTexts[TEXTS.Buttons.backArrowed],

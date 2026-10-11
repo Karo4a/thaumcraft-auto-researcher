@@ -31,7 +31,7 @@ def chooseThaumVersion(UI: OverlayUI) -> None:
         Scenarios.configureThaumWindowCoords, [UI],
     )
     versions = getGtnhVersions()
-    versionsObjects = []
+    versionsObjects: list[Text] = []
 
     selectedVersionObject: list[Text | None] = [None]
     selectedVersion: list[str | None] = [None]

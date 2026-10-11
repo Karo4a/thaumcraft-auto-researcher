@@ -38,7 +38,7 @@ def planMixing(aspect: Aspect, targetCount: int,
 
     mixingStack = [aspect]
     totalMixingForAspect = {aspect.name: mixingTimes}
-    totalCostBasicAspects = {}
+    totalCostBasicAspects: dict[str, int] = {}
     notProcessedRecipes = [recipe]
 
     while notProcessedRecipes:
@@ -59,7 +59,7 @@ def planMixing(aspect: Aspect, targetCount: int,
                 if totalCostBasicAspects[aspectInRecipe.name] > aspectInRecipe.count:
                     return None
 
-    plan = []
+    plan: list[tuple[Aspect, int]] = []
     while mixingStack:
         aspectRecipe = mixingStack.pop()
         times = totalMixingForAspect[aspectRecipe.name]
@@ -75,7 +75,7 @@ def selectCraftableAspects(allAspectNames: list[str], recipes: dict[str, list[st
     Возвращает имена аспектов (в порядке allAspectNames), которые сейчас можно скрафтить:
     аспект ещё не открыт, у него есть рецепт, и оба ингредиента уже доступны.
     """
-    craftable = []
+    craftable: list[str] = []
     for name in allAspectNames:
         if name in availableNames:
             continue

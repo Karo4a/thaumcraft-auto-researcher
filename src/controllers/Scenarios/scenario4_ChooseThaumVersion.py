@@ -31,7 +31,7 @@ def chooseThaumVersion(UI: OverlayUI) -> None:
     )
     recipesConfig = AppState.allAspectRecipes
     versions = list(recipesConfig.keys())
-    versionsObjects = []
+    versionsObjects: list[Text] = []
 
     selectedVersionObject: list[Text | None] = [None]
     selectedVersion: list[str | None] = [None]

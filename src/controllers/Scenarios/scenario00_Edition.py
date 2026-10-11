@@ -39,7 +39,7 @@ def chooseEdition(UI: OverlayUI) -> None:
 
     editionNames = editions.getEditionNames()
     editionDisplayNames = list(map(editions.getEditionDisplayName, editionNames))
-    editionTextObjects = []
+    editionTextObjects: list[Text] = []
 
     selectedEditionObject: list[Text | None] = [None]
     selectedEdition: list[str | None] = [None]

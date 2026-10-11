@@ -25,7 +25,7 @@ def remove_same_spot_predictions(digit_predictions: list[ObjectPrediction]) -> l
     """
     MIN_VALID_DIFF = 2.0  # Минимальная разница в координатах между предсказаниями, когда предсказания считаются для разных цифр
     prev_x = -666
-    result = []
+    result: list[ObjectPrediction] = []
     digit_predictions.sort(key=lambda pred: pred.x)
     for digit_pred in digit_predictions:
         if abs(prev_x - digit_pred.x) < MIN_VALID_DIFF:
@@ -46,11 +46,11 @@ def group_aspects_and_digits(
     Returns:
         Список пар (Предсказание аспекта, Список цифр, относящихся к этому аспекту)
     """
-    result = []
+    result: list[tuple[ObjectPrediction, list[ObjectPrediction]]] = []
     for aspect_pred in predictions:
         if not is_aspect(aspect_pred):
             continue
-        aspect_digits = []
+        aspect_digits: list[ObjectPrediction] = []
         for digit_pred in predictions:
             if not is_digit(digit_pred):
                 continue
@@ -64,7 +64,7 @@ def aspects_count(predictions: list[ObjectPrediction]) -> dict[str, int]:
     """
     Каждому аспекту подставляет его распознанное количество
     """
-    counts = dict()
+    counts: dict[str, int] = dict()
     for aspect_pred, aspect_digits_pred in group_aspects_and_digits(predictions):
         aspect_digits_pred = remove_same_spot_predictions(aspect_digits_pred)
         aspect_digits_pred.sort(key=lambda pred: pred.x)

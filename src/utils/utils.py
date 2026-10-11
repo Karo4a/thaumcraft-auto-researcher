@@ -42,7 +42,7 @@ def getImagesDiffPercent(image1: Image.Image, image2: Image.Image, masks: list[I
     #     print()
     pixelsCount = len(pixels1)
 
-    convertedMasks = []
+    convertedMasks: list[list[int]] = []
     for mask in masks:
         if mask.size != image1.size:
             raise ValueError("Images and all masks sizes must be the same")
@@ -57,7 +57,7 @@ def getImagesDiffPercent(image1: Image.Image, image2: Image.Image, masks: list[I
     activePixelsCount = 0
     pixels = len(pixels1)
     directions = len(pixels1[0])
-    diffs = []
+    diffs: list[str] = []
     for pixelIdx in range(pixels):
         pixel1 = pixels1[pixelIdx]
         pixel2 = pixels2[pixelIdx]

@@ -9,7 +9,7 @@ from PyQt5.QtGui import QDesktopServices
 
 from utils import AppState
 from UI.OverlayUI import KeyboardKeys, OverlayUI
-from UI.primitives import Image, Circle
+from UI.primitives import Image, Circle, UIPrimitive
 from UI.primitives.Text import Text
 from configs.translations import TEXTS
 from controllers.Aspect import Aspect
@@ -59,10 +59,10 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     noneHexagons = [set()]
     multyResearchesCountLeft = [0]
 
-    cellsObjects = []
+    cellsObjects: list[Image | Circle] = []
 
     # --- Cells dialogue elements
-    cellSettingsStateDialogueObjects = []
+    cellSettingsStateDialogueObjects: list[UIPrimitive] = []
 
     def updateDetectingField() -> None:
         logging.debug(f'Run detecting aspects on field')

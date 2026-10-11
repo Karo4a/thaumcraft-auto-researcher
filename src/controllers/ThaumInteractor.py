@@ -656,7 +656,7 @@ class ThaumInteractor:
 
         xLeft = self.rectHexagonsCC.x - (THAUM_HEXAGONS_SLOTS_COUNT / 2) * self.hexagonSlotSizeX
         yTop = self.rectHexagonsCC.y - (THAUM_HEXAGONS_SLOTS_COUNT / 2) * self.hexagonSlotSizeY
-        allCells = set()
+        allCells: set[Cell] = set()
         maxDistFromCenter = 0
         for prediction in predictions:
             if prediction.predictionName == NEUROLINK_FREE_HEXAGON_PREDICTION_NAME:
@@ -687,9 +687,9 @@ class ThaumInteractor:
         hexagonFieldRadius = min(maxDistFromCenter, THAUM_HEXAGONS_SLOTS_COUNT // 2)
         logging.debug(f"Hexagon field radius detected: {hexagonFieldRadius}")
 
-        existingAspects = {}
-        noneHexagons = set()
-        freeHexagons = set()
+        existingAspects: dict[tuple[int, int], str] = {}
+        noneHexagons: set[tuple[int, int]] = set()
+        freeHexagons: set[tuple[int, int]] = set()
         for x in range(-hexagonFieldRadius, hexagonFieldRadius + 1):
             for y in range(-hexagonFieldRadius + (abs(x) + 1) // 2, hexagonFieldRadius - (abs(x)) // 2 + 1):
                 noneHexagons.add((x, y))
