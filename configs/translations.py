@@ -17,6 +17,7 @@ class TEXTS:
     aspectsDetected: ClassVar[str] = "aspectsDetected"
     aspectChanging: ClassVar[str] = "aspectChanging"
     waitForSolvingPlacing: ClassVar[str] = "waitForSolvingPlacing"
+    solvingPlacingAborted: ClassVar[str] = "solvingPlacingAborted"
     solvingCreated: ClassVar[str] = "solvingCreated"
     programPaused: ClassVar[str] = "programPaused"
     startAutomaticMode: ClassVar[str] = "startAutomaticMode"
@@ -107,6 +108,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 Не двигайте мышью и не нажимайте никакие кнопки!
 
 Для экстренного закрытия программы нажмите [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """Выкладывание решения прервано: нужного аспекта нет в инвентаре и его нельзя скрафтить.
+Пополните запас аспектов и нажмите «Выложить решение» снова.""",
 
         TEXTS.solvingCreated: """Нейросеть определила аспекты на поле.
 Если аспекты определены неверно, можно кликнуть на ячейку 
@@ -212,6 +215,8 @@ To change its quantity, use the number keys [0-9] and [Backspace]""",
 Do not move the mouse or press any buttons!
 
 For emergency program termination, press [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """Placing the solution was aborted: a required aspect is missing from the inventory and cannot be crafted.
+Refill your aspects and press "Place solving" again.""",
 
         TEXTS.solvingCreated: """The neural network has detected aspects on the field.
 If aspects are detected incorrectly, you can click on a cell 
@@ -317,6 +322,8 @@ Per cambiare la sua quantità, usa i tasti numerici [0-9] e [Backspace]""",
 Non muovere il mouse o premere alcun pulsante!
 
 Per la chiusura di emergenza del programma, premi [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """Il posizionamento della soluzione è stato interrotto: un aspetto necessario manca nell'inventario e non può essere creato.
+Rifornisci gli aspetti e premi di nuovo «Posiziona soluzione».""",
 
         TEXTS.solvingCreated: """La rete neurale ha rilevato gli aspetti sul campo.
 Se gli aspetti sono rilevati in modo errato, puoi fare clic su una cella 
@@ -422,6 +429,8 @@ Om de hoeveelheid te wijzigen, gebruikt u de cijfertoetsen [0-9] en [Backspace]"
 Beweeg de muis niet en druk op geen enkele knop!
 
 Voor noodafsluiting van het programma, druk op [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """Het plaatsen van de oplossing is afgebroken: een vereist aspect ontbreekt in de inventaris en kan niet gemaakt worden.
+Vul je aspecten aan en druk opnieuw op "Oplossing plaatsen".""",
 
         TEXTS.solvingCreated: """Het neurale netwerk heeft aspecten op het veld gedetecteerd.
 Als aspecten onjuist zijn gedetecteerd, kunt u op een cel klikken 
@@ -527,6 +536,8 @@ Para cambiar su cantidad, usa las teclas numéricas [0-9] y [Retroceso]""",
 ¡No muevas el ratón ni presiones ningún botón!
 
 Para la terminación de emergencia del programa, presiona [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """Se interrumpió la colocación de la solución: falta un aspecto necesario en el inventario y no se puede crear.
+Repón los aspectos y pulsa «Colocar solución» de nuevo.""",
 
         TEXTS.solvingCreated: """La red neuronal ha detectado aspectos en el campo.
 Si los aspectos se detectan incorrectamente, puedes hacer clic en una celda 
@@ -632,6 +643,8 @@ Si eres cliente de un banco ruso - elige el segundo botón. Abrirá un enlace a 
 لا تحرك الفأرة أو تضغط على أي أزرار!
 
 للإنهاء الطارئ للبرنامج، اضغط [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """تم إيقاف وضع الحل: أحد الجوانب المطلوبة غير موجود في المخزون ولا يمكن تصنيعه.
+أعد تعبئة الجوانب ثم اضغط على «وضع الحل» مرة أخرى.""",
 
         TEXTS.solvingCreated: """اكتشفت الشبكة العصبية الجوانب في الحقل.
 إذا تم اكتشاف الجوانب بشكل غير صحيح، يمكنك النقر على خلية 
@@ -736,6 +749,8 @@ Si eres cliente de un banco ruso - elige el segundo botón. Abrirá un enlace a 
 請勿移動滑鼠或按下任何按鈕！
 
 如需緊急終止程式，請按 [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """放置解決方案已中止：物品欄中缺少所需的要素，且無法合成。
+請補充要素後再次按下「放置解決方案」。""",
 
         TEXTS.solvingCreated: """神經網路已檢測到場上的要素。
 如果要素檢測不正確，您可以點擊單元格
@@ -840,6 +855,8 @@ Si eres cliente de un banco ruso - elige el segundo botón. Abrirá un enlace a 
 请勿移动鼠标或按下任何按钮！
 
 如需紧急终止程序，请按 [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """放置解决方案已中止：物品栏中缺少所需的要素，且无法合成。
+请补充要素后再次按下“放置解决方案”。""",
 
         TEXTS.solvingCreated: """神经网络已检测到场上的要素。
 如果要素检测不正确，您可以点击单元格
@@ -945,6 +962,8 @@ Pour changer sa quantité, utilisez les touches numériques [0-9] et [Retour arr
 Ne déplacez pas la souris et n'appuyez sur aucun bouton !
 
 Pour l'arrêt d'urgence du programme, appuyez sur [Ctrl + Shift + Alt]""",
+        TEXTS.solvingPlacingAborted: """Le placement de la solution a été interrompu : un aspect requis manque dans l'inventaire et ne peut pas être fabriqué.
+Rechargez vos aspects et appuyez de nouveau sur « Placer la solution ».""",
 
         TEXTS.solvingCreated: """Le réseau neuronal a détecté les aspects sur le terrain.
 Si les aspects sont mal détectés, vous pouvez cliquer sur une cellule 
@@ -1050,6 +1069,8 @@ Si vous êtes client d'une banque russe - choisissez le deuxième bouton. Il ouv
 माउस न ले जाएँ या कोई बटन न दबाएँ!
 
 आपातकालीन प्रोग्राम समाप्ति के लिए, [Ctrl + Shift + Alt] दबाएँ""",
+        TEXTS.solvingPlacingAborted: """समाधान रखना बंद कर दिया गया: इन्वेंट्री में आवश्यक पहलू नहीं है और उसे बनाया नहीं जा सकता।
+पहलू भरें और फिर से «समाधान रखें» दबाएँ।""",
 
         TEXTS.solvingCreated: """न्यूरल नेटवर्क ने क्षेत्र में पहलुओं का पता लगा लिया है।
 यदि पहलुओं का गलत पता लगाया गया है, तो आप सेल पर क्लिक कर सकते हैं 
@@ -1155,6 +1176,8 @@ Si vous êtes client d'une banque russe - choisissez le deuxième bouton. Il ouv
 마우스를 움직이거나 버튼을 누르지 마세요!
 
 비상 프로그램 종료는 [Ctrl + Shift + Alt]를 누르세요""",
+        TEXTS.solvingPlacingAborted: """해결책 배치가 중단되었습니다: 인벤토리에 필요한 요소가 없고 제작할 수도 없습니다.
+요소를 보충한 뒤 «해결책 배치»를 다시 누르세요.""",
 
         TEXTS.solvingCreated: """신경망이 필드의 요소를 감지했습니다.
 요소가 잘못 감지된 경우, 셀을 클릭하여 

@@ -37,6 +37,12 @@ class TranslationsTest(unittest.TestCase):
                 self.assertTrue(texts[key], f"{language} has empty {key}")
                 self.assertNotEqual(texts[key], key, f"{language} did not translate {key}")
 
+    def test_solving_placing_aborted_text_is_translated(self):
+        for language, texts in TRANSLATIONS.items():
+            self.assertTrue(texts[TEXTS.solvingPlacingAborted], f"{language} has empty {TEXTS.solvingPlacingAborted}")
+            self.assertNotEqual(texts[TEXTS.solvingPlacingAborted], TEXTS.solvingPlacingAborted,
+                                f"{language} did not translate {TEXTS.solvingPlacingAborted}")
+
 
 if __name__ == "__main__":
     unittest.main()

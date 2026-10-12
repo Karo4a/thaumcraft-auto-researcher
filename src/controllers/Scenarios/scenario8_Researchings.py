@@ -18,7 +18,7 @@ from controllers import Scenarios
 from controllers.Scenarios.shared import createButtonsAndText
 from logic.LinksGeneration import generateLinkMap
 from configs.constants import MARGIN, LINK_GENERATION_MAX_TIME_MS, MAX_SOLVE_RETRIES, THAUM_HEXAGONS_SLOTS_COUNT, \
-    DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL
+    DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL, SOLVING_ABORTED_TEXT_TIME_MS
 from utils.utils import renderDelay, eventsDelay
 
 
@@ -58,6 +58,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     freeHexagons = [set()]
     noneHexagons = [set()]
     multyResearchesCountLeft = [0]
+    abortedTexts: list[Text] = []
 
     cellsObjects: list[Image | Circle] = []
 
@@ -317,9 +318,37 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         for aspectCoords in existingAspects[0].keys():
             del finalLinkMap[aspectCoords]
 
+        abortedText = Text(
+            MARGIN, MARGIN,
+            AppState.translatedTexts[TEXTS.solvingPlacingAborted],
+            color=QColor('white'),
+            withBackground=True,
+            padding=MARGIN,
+            UI=UI,
+        )
+
+        def onPuttingAborted() -> None:
+            # Аспект нельзя ни взять, ни скрафтить: часть решения могла остаться на поле.
+            # Не забираем бумагу и не идём к следующему исследованию, а показываем текущее
+            # состояние поля, чтобы пользователь пополнил инвентарь аспектов и выложил заново.
+            logging.critical("Putting aspects aborted: not enough aspects in inventory")
+            multyResearchesCountLeft[0] = 0
+            UI.safeRemoveObject(onProcessText)
+            for previousText in abortedTexts:
+                UI.safeRemoveObject(previousText)
+            abortedTexts.clear()
+            updateDetectingField()
+            updateSolving()
+            switchToActiveState()
+            abortedTexts.append(abortedText)
+            UI.safeAddObject(abortedText)
+            UI.setTimeout(SOLVING_ABORTED_TEXT_TIME_MS, UI.safeRemoveObject, [abortedText])
+
         def startPuttingAspects() -> None:
             logging.info("Putting aspects started...")
-            TI.fillByLinkMap(finalLinkMap)
+            if not TI.fillByLinkMap(finalLinkMap):
+                onPuttingAborted()
+                return
             logging.info("Putting aspects done")
             TI.takeOutPaper()
             eventsDelay()

@@ -429,7 +429,12 @@ class ThaumInteractor:
         aspect1.count -= mixingTimes
         aspect2.count -= mixingTimes
 
-    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]) -> None:
+    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]) -> bool:
+        """
+        Выкладывает решение по карте аспектов. Возвращает True всегда: базовая (vanilla) версия
+        не умеет определять, что аспект невозможно взять (mixAspect ничего не возвращает).
+        GTNH-версия возвращает False и прерывает выкладывание, если аспект взять нельзя.
+        """
         logging.info(f"Filling aspects by link map: {aspectsMap}")
 
         # Оптимизируем порядок аспектов, чтобы пришлось меньше листать инвентарь
@@ -446,6 +451,7 @@ class ThaumInteractor:
             eventsDelay()
             self.putAspect(*coords)
             eventsDelay()
+        return True
 
     def imageResize(self, image: Image.Image) -> Image.Image:
         return image.resize((ASPECTS_IMAGES_SIZE, ASPECTS_IMAGES_SIZE), Image.Resampling.LANCZOS)

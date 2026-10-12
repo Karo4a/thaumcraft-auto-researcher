@@ -141,37 +141,41 @@ class GtnhThaumInteractor(ThaumInteractor):
 
         removeAspectDuplicates()
 
-    def takeAspect(self, aspect: Aspect) -> None:
+    def takeAspect(self, aspect: Aspect) -> bool:
+        """
+        Берёт аспект из инвентаря, при необходимости сначала миксуя его.
+        Возвращает False, если аспект нельзя взять: неизвестна ячейка или микс невозможен.
+        """
+        if aspect.cellX is None or aspect.cellY is None:
+            logging.critical(f"Cannot take aspect {aspect.name}: cell coords are unknown")
+            return False
         if not self.mixAspect(aspect, 1):
             logging.critical(f"Cannot mix aspect {aspect.name}. Take skipped")
-            return
+            return False
         logging.info(f"Take aspect {aspect}...")
         self.takeAspectByCellCoords(aspect.cellX, aspect.cellY, aspect.rectAspectsNumber)
         aspect.count -= 1
+        return True
 
     def mixAspect(self, aspect: Aspect, targetCount: int = 3) -> bool:
         """
         Создаёт аспект миксом по рецепту (GTNH: drag/right-click).
         Возвращает True, если микс выполнен или аспекта уже достаточно, False — если микс невозможен.
+        План проверяется целиком до первого клика, чтобы не оставить инвентарь полу-перемешанным.
         """
         if (aspect.count or 0) >= targetCount:
             return True
         plan = planMixing(aspect, targetCount, self.getAspectByName, self.getAspectRecipeByName)
         if plan is None:
+            logging.critical(f"Cannot mix aspect {aspect.name}: mixing is not possible")
             return False
+        if not self.canExecuteMixingPlan(plan):
+            logging.critical(f"Cannot mix aspect {aspect.name}: plan is not executable now")
+            return False
+        logging.info(f"Mixing aspect {aspect.name} to {targetCount}: plan {[(a.name, t) for a, t in plan]}")
         for aspectRecipe, mixingTimes in plan:
             aspect1, aspect2 = map(lambda name: self.getAspectByName(name),
                                    self.getAspectRecipeByName(aspectRecipe.name))
-            if aspect1.cellX is None or aspect2.cellX is None:
-                logging.critical(f"Cannot mix {aspectRecipe.name}: ingredient has no cell coords "
-                                 f"({aspect1.name}: {aspect1.cellX},{aspect1.cellY}; "
-                                 f"{aspect2.name}: {aspect2.cellX},{aspect2.cellY})")
-                return False
-            # Защита от особенности planMixing: общий ингредиент может быть недосчитан
-            if (aspect1.count or 0) < mixingTimes or (aspect2.count or 0) < mixingTimes:
-                logging.critical(f"Not enough aspects to mix {aspectRecipe.name}: x{mixingTimes} of "
-                                 f"{aspect1.name}({aspect1.count}) and {aspect2.name}({aspect2.count})")
-                return False
             self.takeAspectByCellCoords(aspect1.cellX, aspect1.cellY, aspect1.rectAspectsNumber)
             aspect2_point = self.inventoryCellCoordsToPixelCoords(aspect2.cellX, aspect2.cellY, aspect2.rectAspectsNumber)
             eventsDelay()
@@ -186,19 +190,66 @@ class GtnhThaumInteractor(ThaumInteractor):
             aspect2.count -= mixingTimes
         return True
 
-    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]) -> None:
+    def canExecuteMixingPlan(self, plan: list[tuple[Aspect, int]]) -> bool:
+        """
+        Прогоняет план микса по counts без кликов: проверяет, что у ингредиентов известны
+        ячейки и что запаса хватает на каждом шаге плана.
+        """
+        simulatedCounts: dict[str, int] = {}
+
+        def getCount(aspectOfPlan: Aspect) -> int:
+            if aspectOfPlan.name not in simulatedCounts:
+                simulatedCounts[aspectOfPlan.name] = aspectOfPlan.count or 0
+            return simulatedCounts[aspectOfPlan.name]
+
+        for aspectRecipe, mixingTimes in plan:
+            ingredients = list(map(lambda name: self.getAspectByName(name),
+                                   self.getAspectRecipeByName(aspectRecipe.name)))
+            for ingredient in ingredients:
+                if ingredient.cellX is None or ingredient.cellY is None:
+                    logging.critical(f"Cannot mix {aspectRecipe.name}: ingredient has no cell coords "
+                                     f"({ingredient.name}: {ingredient.cellX},{ingredient.cellY})")
+                    return False
+
+            needPerIngredient: dict[str, int] = {}
+            for ingredient in ingredients:
+                needPerIngredient[ingredient.name] = needPerIngredient.get(ingredient.name, 0) + mixingTimes
+            for ingredientName, need in needPerIngredient.items():
+                available = getCount(self.getAspectByName(ingredientName))
+                if available < need:
+                    logging.critical(f"Not enough aspects to mix {aspectRecipe.name}: "
+                                     f"x{mixingTimes} needs {need} of {ingredientName}, "
+                                     f"but only {available} left")
+                    return False
+
+            simulatedCounts[aspectRecipe.name] = getCount(aspectRecipe) + mixingTimes
+            for ingredientName, need in needPerIngredient.items():
+                simulatedCounts[ingredientName] -= need
+        return True
+
+    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]) -> bool:
+        """
+        Выкладывает решение на поле. Возвращает False, если аспект невозможно взять:
+        выкладывание прекращается, чтобы не оставить поле в некорректном состоянии.
+        """
         logging.info(f"Filling aspects by link map: {aspectsMap}")
 
         aspectsListMap = list(aspectsMap.items())
         aspectsListMap.sort(key=lambda pair: self.getAspectByName(pair[1]).uid)
         logging.debug(f"Sorted aspects link map: {aspectsListMap}")
 
-        for coords, aspectName in aspectsListMap:
+        for placedCount, (coords, aspectName) in enumerate(aspectsListMap):
             aspect = self.getAspectByName(aspectName)
-            self.takeAspect(aspect)
+            if not self.takeAspect(aspect):
+                logging.critical(f"Cannot place {aspect.name}(uid={aspect.uid}) into cell {coords}: aspect is not "
+                                 f"available and cannot be mixed. Placed {placedCount} of {len(aspectsListMap)} "
+                                 f"aspects. Putting aspects aborted")
+                return False
             eventsDelay()
             self.putAspect(*coords)
             eventsDelay()
+            logging.info(f"Placed {aspect.name}(uid={aspect.uid}) into cell {coords}, left: {aspect.count}")
+        return True
 
     def updateAvailableAspectsInInventory(self, onFinishCallback: Callable, callbackArgs: list[Any] = []) -> None:
         logging.info("Detecting available aspects in inventory... (GTNH)")

@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import unittest
@@ -17,8 +18,12 @@ except ImportError as error:
 
 
 class FakeAspect:
+    nextUid = 0
+
     def __init__(self, name, count=0):
         self.name = name
+        self.uid = FakeAspect.nextUid
+        FakeAspect.nextUid += 1
         self.count = count
         self.cellX = 0
         self.cellY = 0
@@ -32,14 +37,20 @@ RECIPES = {
     "praecantatio": ["vacuos", "potentia"],
 }
 
+with open(os.path.join(ROOT, "src", "gtnh", "data", "aspects_configs", "gtnhAspectsRecipes.json"),
+          encoding="utf-8") as file:
+    GTNH_RECIPES = json.load(file)["GTNH"]
 
-def makeInteractor():
+
+def makeInteractor(recipes=None):
+    recipes = recipes or RECIPES
     interactorModule.eventsDelay = lambda: None
     interactorModule.renderDelay = lambda: None
     ti = GtnhThaumInteractor.__new__(GtnhThaumInteractor)
-    ti.recipes = RECIPES
+    ti.recipes = recipes
     ti.allAspects = []
     ti.taken = []
+    ti.placed = []
 
     class FakePoint:
         def click(self, button=None):
@@ -48,16 +59,18 @@ def makeInteractor():
         def release(self):
             pass
 
-    def makeAspects():
+    def makeAspects(counts=None):
+        counts = counts or {}
         aspects = {}
-        for name, recipe in RECIPES.items():
-            aspects[name] = FakeAspect(name, 5 if len(recipe) == 0 else 0)
+        for name, recipe in recipes.items():
+            aspects[name] = FakeAspect(name, counts.get(name, 5 if len(recipe) == 0 else 0))
         ti.allAspects = list(aspects.values())
         return aspects
 
     ti.makeAspects = makeAspects
     ti.takeAspectByCellCoords = lambda cellX, cellY, rectAspectNumber: ti.taken.append((cellX, cellY, rectAspectNumber))
     ti.inventoryCellCoordsToPixelCoords = lambda cellX, cellY, rectAspectNumber: FakePoint()
+    ti.putAspect = lambda cellX, cellY: ti.placed.append((cellX, cellY))
     return ti
 
 
@@ -84,7 +97,7 @@ class GtnhInteractorMixTest(unittest.TestCase):
         aspects["ignis"].count = 0
         self.assertFalse(ti.mixAspect(aspects["praecantatio"], 1))
 
-    def test_mix_aborts_when_ingredients_insufficient_during_execution(self):
+    def test_mix_aborts_before_clicks_when_ingredients_insufficient(self):
         ti = makeInteractor()
         aspects = ti.makeAspects()
         aspects["ordo"].count = 5
@@ -96,6 +109,14 @@ class GtnhInteractorMixTest(unittest.TestCase):
         finally:
             interactorModule.planMixing = originalPlanMixing
         self.assertEqual(ti.taken, [])
+
+    def test_mix_aborts_before_clicks_when_gtnh_plan_is_impossible(self):
+        # basics на нуле: fabrico скрафтить нельзя, поэтому не должно быть ни одного клика
+        ti = makeInteractor(GTNH_RECIPES)
+        aspects = ti.makeAspects({name: 0 for name in GTNH_RECIPES})
+        self.assertFalse(ti.mixAspect(aspects["fabrico"], 1))
+        self.assertEqual(ti.taken, [])
+        self.assertEqual(aspects["fabrico"].count, 0)
 
     def test_mix_aborts_when_ingredient_has_no_coords(self):
         ti = makeInteractor()
@@ -122,9 +143,52 @@ class GtnhInteractorMixTest(unittest.TestCase):
         aspects["vacuos"].count = 0
         aspects["aer"].count = 0
         aspects["perditio"].count = 0
-        ti.takeAspect(aspects["vacuos"])
+        self.assertFalse(ti.takeAspect(aspects["vacuos"]))
         self.assertEqual(ti.taken, [])
         self.assertEqual(aspects["vacuos"].count, 0)
+
+    def test_take_aspect_returns_false_when_cell_coords_unknown(self):
+        ti = makeInteractor()
+        aspects = ti.makeAspects()
+        aspects["vacuos"].cellX = None
+        self.assertFalse(ti.takeAspect(aspects["vacuos"]))
+        self.assertEqual(ti.taken, [])
+
+    def test_fill_by_link_map_places_all_aspects(self):
+        ti = makeInteractor()
+        ti.makeAspects()
+        self.assertTrue(ti.fillByLinkMap({(-1, 0): "vacuos", (0, 0): "potentia"}))
+        self.assertEqual(sorted(ti.placed), [(-1, 0), (0, 0)])
+        self.assertTrue(ti.taken)
+
+    def test_fill_by_link_map_aborts_and_places_nothing_when_aspect_unavailable(self):
+        ti = makeInteractor()
+        ti.makeAspects({name: 0 for name in RECIPES})
+        self.assertFalse(ti.fillByLinkMap({(-1, 0): "vacuos", (0, 0): "potentia"}))
+        self.assertEqual(ti.taken, [])
+        self.assertEqual(ti.placed, [])
+
+    def test_fill_by_link_map_mixes_missing_ingredients(self):
+        # Регресс на лог: fabrico требовал bestia x2 при motus(1) в стоке
+        ti = makeInteractor(GTNH_RECIPES)
+        aspects = ti.makeAspects({name: 10 for name, recipe in GTNH_RECIPES.items() if not recipe})
+        aspects["motus"].count = 1
+        aspects["victus"].count = 2
+        self.assertTrue(ti.fillByLinkMap({(-1, 0): "fabrico"}))
+        self.assertEqual(aspects["fabrico"].count, 0)
+        self.assertEqual(ti.placed, [(-1, 0)])
+        self.assertTrue(ti.taken)
+
+    def test_mix_after_plan_and_counts_check_is_not_needed(self):
+        # Проверка плана целиком: кликов не делаем, если итогового запаса не хватит
+        ti = makeInteractor()
+        aspects = ti.makeAspects()
+        aspects["aer"].count = 4
+        aspects["perditio"].count = 4
+        aspects["vacuos"].count = 0
+        self.assertTrue(ti.mixAspect(aspects["vacuos"], 1))
+        self.assertEqual(aspects["vacuos"].count, 1)
+        self.assertEqual(aspects["aer"].count, 3)
 
     def test_update_available_aspects_finishes_once(self):
         from types import SimpleNamespace
