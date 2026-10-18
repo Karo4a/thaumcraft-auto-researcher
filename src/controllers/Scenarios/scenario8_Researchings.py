@@ -15,7 +15,7 @@ from configs.translations import TEXTS
 from controllers.Aspect import Aspect
 from controllers.ThaumInteractor import ThaumInteractor
 from controllers import Scenarios
-from controllers.Scenarios.shared import createButtonsAndText
+from controllers.Scenarios.shared import createButtonsAndText, createNotification, NOTIFICATION_BACKGROUND_ERROR
 from logic.LinksGeneration import generateLinkMap
 from configs.constants import MARGIN, LINK_GENERATION_MAX_TIME_MS, MAX_SOLVE_RETRIES, THAUM_HEXAGONS_SLOTS_COUNT, \
     DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL, SOLVING_ABORTED_TEXT_TIME_MS
@@ -58,7 +58,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     freeHexagons = [set()]
     noneHexagons = [set()]
     multyResearchesCountLeft = [0]
-    abortedTexts: list[Text] = []
+    notifications: list[Text] = []
 
     cellsObjects: list[Image | Circle] = []
 
@@ -318,15 +318,6 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         for aspectCoords in existingAspects[0].keys():
             del finalLinkMap[aspectCoords]
 
-        abortedText = Text(
-            MARGIN, MARGIN,
-            AppState.translatedTexts[TEXTS.solvingPlacingAborted],
-            color=QColor('white'),
-            withBackground=True,
-            padding=MARGIN,
-            UI=UI,
-        )
-
         def onPuttingAborted() -> None:
             # Аспект нельзя ни взять, ни скрафтить: часть решения могла остаться на поле.
             # Не забираем бумагу и не идём к следующему исследованию, а показываем текущее
@@ -334,15 +325,10 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
             logging.critical("Putting aspects aborted: not enough aspects in inventory")
             multyResearchesCountLeft[0] = 0
             UI.safeRemoveObject(onProcessText)
-            for previousText in abortedTexts:
-                UI.safeRemoveObject(previousText)
-            abortedTexts.clear()
             updateDetectingField()
             updateSolving()
             switchToActiveState()
-            abortedTexts.append(abortedText)
-            UI.safeAddObject(abortedText)
-            UI.setTimeout(SOLVING_ABORTED_TEXT_TIME_MS, UI.safeRemoveObject, [abortedText])
+            showNotification(abortedNotification)
 
         def startPuttingAspects() -> None:
             logging.info("Putting aspects started...")
@@ -404,6 +390,22 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
             (AppState.translatedTexts[TEXTS.Buttons.goToDonate], onClickDonate, []),
         ]
     )
+
+    # --- Notifications (правый нижний угол, отдельная палитра, не переключаются со состояниями)
+    abortedNotification = createNotification(
+        UI,
+        AppState.translatedTexts[TEXTS.solvingPlacingAborted],
+        backgroundColor=NOTIFICATION_BACKGROUND_ERROR,
+    )
+
+    def showNotification(notification: Text) -> None:
+        """Показывает одно уведомление вместо предыдущих и убирает его через SOLVING_ABORTED_TEXT_TIME_MS."""
+        for previousNotification in notifications:
+            UI.safeRemoveObject(previousNotification)
+        notifications.clear()
+        notifications.append(notification)
+        UI.safeAddObject(notification)
+        UI.setTimeout(SOLVING_ABORTED_TEXT_TIME_MS, UI.safeRemoveObject, [notification])
 
     # --- Multy researches state elements
     def onClickBack() -> None:
