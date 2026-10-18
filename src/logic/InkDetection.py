@@ -1,32 +1,48 @@
-from configs.constants import INK_EXHAUSTED_MARKER_CELLS
+from configs.constants import INK_EXHAUSTED_MARKER_CELLS, INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT
 
 HexagonsCells = set[tuple[int, int]]
 
 
-def isInkExhaustedByField(noneHexagons: HexagonsCells,
-                          markerCells: HexagonsCells = INK_EXHAUSTED_MARKER_CELLS) -> bool:
+def undetectedHexagons(noneHexagons: HexagonsCells, aspectCells: HexagonsCells) -> HexagonsCells:
+    """Клетки, которые не опознаны ни как свободный шестиугольник, ни как аспект.
+
+    `noneHexagons` из определения поля (`ThaumInteractor.getExistingAspectsOnField`) содержит
+    ещё и клетки с распознанными аспектами: аспект в клетке — это норма, поэтому из
+    "пропавших" клеток его надо исключить.
+    """
+    return set(noneHexagons) - set(aspectCells)
+
+
+def isInkExhaustedByField(undetected: HexagonsCells,
+                          markerCells: HexagonsCells = INK_EXHAUSTED_MARKER_CELLS,
+                          minMarkerCells: int = INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT) -> bool:
     """Определяет исчерпание чернильницы по данным определения поля.
 
-    Когда в чернильнице кончаются чернила, игра перестаёт ставить аспекты и перекрывает
-    часть клеток поля: эти клетки больше не определяются ни как аспект, ни как свободный
-    шестиугольник, то есть попадают в noneHexagons.
+    Когда в чернильнице кончаются чернила, игра перестаёт ставить аспекты и пишет
+    "You have run out of ink!" плашкой в середине поля: маркерные клетки поля (полоса
+    в середине) перестают определяться как свободные шестиугольники.
 
-    Пустой набор маркерных клеток (значение по умолчанию в configs/constants.py) полностью
-    выключает отслеживание. Достаточно одной маркерной клетки в noneHexagons.
+    Пустой набор маркерных клеток выключает отслеживание (всегда False).
     """
-    return bool(markerCells) and any(cell in noneHexagons for cell in markerCells)
+    if not markerCells:
+        return False
+    undetectedMarkers = sum(1 for cell in markerCells if cell in undetected)
+    return undetectedMarkers >= minMarkerCells
 
 
-def markerCellsBecameNone(markerCells: HexagonsCells, knownCellsBefore: HexagonsCells,
-                          noneHexagons: HexagonsCells) -> bool:
+def markerCellsBecameUndetected(markerCells: HexagonsCells, knownCellsBefore: HexagonsCells,
+                                undetected: HexagonsCells,
+                                minMarkerCells: int = INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT) -> bool:
     """Определяет исчерпание чернильницы по изменению маркерных клеток во время выкладывания.
 
-    knownCellsBefore — клетки, которые до начала выкладывания были свободными (freeHexagons)
-    или занятыми аспектами (existingAspects). Если хотя бы одна маркерная клетка из них
-    вдруг стала none, значит выкладывание перестало работать (чернила кончились), и его надо
-    прервать, а не доводить до конца вслепую.
+    `knownCellsBefore` — клетки, которые до начала выкладывания были свободными (freeHexagons)
+    или занятыми аспектами (existingAspects). Если маркерные клетки из них вдруг перестали
+    определяться, значит игра больше не принимает аспекты (чернила кончились), и выкладывание
+    надо прервать, а не доводить до конца вслепую.
 
     Пустой набор маркерных клеток выключает отслеживание.
     """
-    return bool(markerCells) and any(cell in knownCellsBefore and cell in noneHexagons
-                                     for cell in markerCells)
+    if not markerCells:
+        return False
+    becameUndetected = sum(1 for cell in markerCells if cell in knownCellsBefore and cell in undetected)
+    return becameUndetected >= minMarkerCells

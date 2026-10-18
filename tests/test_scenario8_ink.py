@@ -187,18 +187,36 @@ def makeTranslations():
     return texts
 
 
-# Поле 5x5 (радиус 2), свободные клетки кроме маркерной
-def fieldWithoutInk(markerCells):
-    knownCells = {(-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0)}
-    noneHexagons = {(-1, -1), (0, -1), (1, -1), (-1, 1), (0, 1), (1, 1)}
-    freeHexagons = knownCells - markerCells
-    if not markerCells:
-        freeHexagons = knownCells
-    noneHexagons = noneHexagons | markerCells
-    return {}, noneHexagons, freeHexagons
+def hexagonShape(radius):
+    """Клетки гексагонального поля, как их строит ThaumInteractor.getExistingAspectsOnField."""
+    return {(x, y) for x in range(-radius, radius + 1)
+            for y in range(-radius + (abs(x) + 1) // 2, radius - abs(x) // 2 + 1)}
 
 
-SOLVE = {(1, -1): "vacuos", (2, -1): "aer", (1, 0): "ignis", (2, 0): "terra"}
+RADIUS = 2
+ASPECT_CELL = (-2, -1)
+# Маркерные клетки, попадающие в поле радиуса 2: центральная полоса целиком
+BAND = {(-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0), (-1, 1), (1, 1)}
+
+
+def fieldDetection(inkExhausted):
+    """Определение поля радиуса 2 в двух состояниях, как в реальном логе игры.
+
+    При исчерпании чернил плашка "You have run out of ink!" закрывает центральную
+    полосу поля: эти клетки перестают определяться как свободные шестиугольники.
+    """
+    shape = hexagonShape(RADIUS)
+    aspects = {ASPECT_CELL: "aer"}
+    freeHexagons = shape - set(aspects)
+    if inkExhausted:
+        freeHexagons = freeHexagons - BAND
+    noneHexagons = shape - freeHexagons  # аспекты остаются в noneHexagons, как в оригинале
+    return dict(aspects), noneHexagons, freeHexagons
+
+
+SOLVE = {ASPECT_CELL: "aer", (1, -1): "vacuos", (2, -1): "aer", (1, 2): "ignis", (2, 1): "terra"}
+# Что реально должно быть выложено: решение без аспектов, уже стоящих на поле
+PLANNED_CELLS = sorted(set(SOLVE) - {ASPECT_CELL})
 
 
 class Scenario8InkExhaustionTest(unittest.TestCase):
@@ -237,18 +255,16 @@ class Scenario8InkExhaustionTest(unittest.TestCase):
     def shownTexts(self, UI):
         return [obj.text for obj in UI.shown if getattr(obj, "text", None) is not None]
 
-    def test_placing_is_disabled_when_marker_cell_is_not_detected(self):
-        scenario.INK_EXHAUSTED_MARKER_CELLS = {(0, 0)}
-        ti = FakeTI([fieldWithoutInk({(0, 0)})], SOLVE)
+    def test_placing_is_disabled_when_the_inkwell_is_empty(self):
+        ti = FakeTI([fieldDetection(inkExhausted=True)], SOLVE)
         UI = self.runScenario(ti)
         self.assertEqual(ti.placed, [])
         self.assertEqual(ti.papersTakenOut, 0)
         self.assertIn(INK_TEXT_KEY, self.shownTexts(UI))
 
-    def test_placing_is_aborted_when_marker_cell_becomes_none(self):
-        scenario.INK_EXHAUSTED_MARKER_CELLS = {(0, 0)}
+    def test_placing_is_aborted_when_the_inkwell_empties_mid_run(self):
         scenario.INK_CHECK_EVERY_N_PLACED_ASPECTS = 3
-        ti = FakeTI([fieldWithoutInk(set()), fieldWithoutInk({(0, 0)})], SOLVE)
+        ti = FakeTI([fieldDetection(inkExhausted=False), fieldDetection(inkExhausted=True)], SOLVE)
         UI = self.runScenario(ti)
         # 3 аспекта выложены, после проверки поля выкладывание прервано
         self.assertEqual(len(ti.placed), 3)
@@ -260,18 +276,18 @@ class Scenario8InkExhaustionTest(unittest.TestCase):
     def test_placing_resumes_after_the_ink_is_refilled(self):
         # Пользователь пополнил чернильницу: перед отказом поле определяется заново,
         # поэтому кнопка «Выложить решение» снова работает
-        scenario.INK_EXHAUSTED_MARKER_CELLS = {(0, 0)}
-        ti = FakeTI([fieldWithoutInk({(0, 0)}), fieldWithoutInk(set())], SOLVE)
+        ti = FakeTI([fieldDetection(inkExhausted=True), fieldDetection(inkExhausted=False)], SOLVE)
         UI = self.runScenario(ti)
-        self.assertEqual(sorted(ti.placed), sorted(SOLVE))
+        self.assertEqual(sorted(ti.placed), PLANNED_CELLS)
         self.assertEqual(ti.papersTakenOut, 1)
         self.assertNotIn(INK_TEXT_KEY, self.shownTexts(UI))
 
     def test_placing_is_not_interrupted_when_tracking_is_disabled(self):
+        # Пустой набор маркерных клеток = поведение до фичи
         scenario.INK_EXHAUSTED_MARKER_CELLS = set()
-        ti = FakeTI([fieldWithoutInk(set()), fieldWithoutInk({(0, 0)})], SOLVE)
+        ti = FakeTI([fieldDetection(inkExhausted=False), fieldDetection(inkExhausted=True)], SOLVE)
         UI = self.runScenario(ti)
-        self.assertEqual(sorted(ti.placed), sorted(SOLVE))
+        self.assertEqual(sorted(ti.placed), PLANNED_CELLS)
         self.assertEqual(ti.papersTakenOut, 1)
         self.assertNotIn(INK_TEXT_KEY, self.shownTexts(UI))
         # При выключенном отслеживании лишних определений поля нет:

@@ -17,10 +17,10 @@ from controllers.ThaumInteractor import ThaumInteractor
 from controllers import Scenarios
 from controllers.Scenarios.shared import createButtonsAndText, createNotification, NOTIFICATION_BACKGROUND_ERROR
 from logic.LinksGeneration import generateLinkMap
-from logic.InkDetection import isInkExhaustedByField, markerCellsBecameNone
+from logic.InkDetection import isInkExhaustedByField, markerCellsBecameUndetected, undetectedHexagons
 from configs.constants import MARGIN, LINK_GENERATION_MAX_TIME_MS, MAX_SOLVE_RETRIES, THAUM_HEXAGONS_SLOTS_COUNT, \
     DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL, SOLVING_ABORTED_TEXT_TIME_MS, \
-    INK_EXHAUSTED_MARKER_CELLS, INK_CHECK_EVERY_N_PLACED_ASPECTS
+    INK_EXHAUSTED_MARKER_CELLS, INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT, INK_CHECK_EVERY_N_PLACED_ASPECTS
 from utils.utils import renderDelay, eventsDelay
 
 
@@ -76,10 +76,12 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.safeRepaint()
         renderDelay()
         (existingAspects[0], noneHexagons[0], freeHexagons[0]) = TI.getExistingAspectsOnField()
-        inkExhausted[0] = isInkExhaustedByField(noneHexagons[0], INK_EXHAUSTED_MARKER_CELLS)
+        inkExhausted[0] = isInkExhaustedByField(
+            undetectedHexagons(noneHexagons[0], set(existingAspects[0])),
+            INK_EXHAUSTED_MARKER_CELLS, INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT,
+        )
         if inkExhausted[0]:
-            logging.critical(f"Ink exhausted: marker cell of {sorted(INK_EXHAUSTED_MARKER_CELLS)} "
-                             f"is not detected on the field")
+            logging.critical("Ink exhausted: marker cells of the field are not detected")
         logging.debug(f'Aspects on field detected')
 
     def updateSolving(interruptingFlag: list[bool] = [False]) -> None:
@@ -388,9 +390,10 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
                 return True
             UI.safeSetObjectsVisibility([onProcessText], True)
 
-            if markerCellsBecameNone(INK_EXHAUSTED_MARKER_CELLS, cellsKnownBeforePlacing[0],
-                                     detectedNoneHexagons):
-                logging.critical("Ink exhausted: marker cell became none while placing aspects")
+            undetected = undetectedHexagons(detectedNoneHexagons, set(detectedAspects))
+            if markerCellsBecameUndetected(INK_EXHAUSTED_MARKER_CELLS, cellsKnownBeforePlacing[0],
+                                           undetected, INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT):
+                logging.critical("Ink exhausted: marker cells disappeared while placing aspects")
                 inkExhausted[0] = True
                 return False
 
