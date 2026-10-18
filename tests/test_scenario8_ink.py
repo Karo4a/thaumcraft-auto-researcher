@@ -199,17 +199,18 @@ ASPECT_CELL = (-2, -1)
 BAND = {(-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0), (-1, 1), (1, 1)}
 
 
-def fieldDetection(inkExhausted):
-    """Определение поля радиуса 2 в двух состояниях, как в реальном логе игры.
+def fieldDetection(inkExhausted=False, lostBandCells=frozenset()):
+    """Определение поля радиуса 2, как в реальном логе игры.
 
-    При исчерпании чернил плашка "You have run out of ink!" закрывает центральную
-    полосу поля: эти клетки перестают определяться как свободные шестиугольники.
+    inkExhausted=True — плашка "You have run out of ink!" закрыла всю центральную полосу.
+    lostBandCells — отдельные клетки полосы, которые просто не опознались (промахи определения).
     """
     shape = hexagonShape(RADIUS)
     aspects = {ASPECT_CELL: "aer"}
-    freeHexagons = shape - set(aspects)
+    lostCells = set(lostBandCells)
     if inkExhausted:
-        freeHexagons = freeHexagons - BAND
+        lostCells |= BAND
+    freeHexagons = (shape - set(aspects)) - lostCells
     noneHexagons = shape - freeHexagons  # аспекты остаются в noneHexagons, как в оригинале
     return dict(aspects), noneHexagons, freeHexagons
 
@@ -277,6 +278,16 @@ class Scenario8InkExhaustionTest(unittest.TestCase):
         # Пользователь пополнил чернильницу: перед отказом поле определяется заново,
         # поэтому кнопка «Выложить решение» снова работает
         ti = FakeTI([fieldDetection(inkExhausted=True), fieldDetection(inkExhausted=False)], SOLVE)
+        UI = self.runScenario(ti)
+        self.assertEqual(sorted(ti.placed), PLANNED_CELLS)
+        self.assertEqual(ti.papersTakenOut, 1)
+        self.assertNotIn(INK_TEXT_KEY, self.shownTexts(UI))
+
+    def test_placing_is_not_interrupted_by_sporadic_detection_misses(self):
+        # Ложное срабатывание из живого прогона: часть клеток полосы не опознана,
+        # но чернила на месте — выкладывание не прерываем
+        scenario.INK_CHECK_EVERY_N_PLACED_ASPECTS = 1
+        ti = FakeTI([fieldDetection(lostBandCells={(-2, 0), (0, 0), (1, 1)})], SOLVE)
         UI = self.runScenario(ti)
         self.assertEqual(sorted(ti.placed), PLANNED_CELLS)
         self.assertEqual(ti.papersTakenOut, 1)
