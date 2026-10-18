@@ -17,8 +17,10 @@ from controllers.ThaumInteractor import ThaumInteractor
 from controllers import Scenarios
 from controllers.Scenarios.shared import createButtonsAndText, createNotification, NOTIFICATION_BACKGROUND_ERROR
 from logic.LinksGeneration import generateLinkMap
+from logic.InkDetection import isInkExhaustedByField, markerCellsBecameNone
 from configs.constants import MARGIN, LINK_GENERATION_MAX_TIME_MS, MAX_SOLVE_RETRIES, THAUM_HEXAGONS_SLOTS_COUNT, \
-    DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL, SOLVING_ABORTED_TEXT_TIME_MS
+    DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL, SOLVING_ABORTED_TEXT_TIME_MS, \
+    INK_EXHAUSTED_MARKER_CELLS, INK_CHECK_EVERY_N_PLACED_ASPECTS
 from utils.utils import renderDelay, eventsDelay
 
 
@@ -59,6 +61,8 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     noneHexagons = [set()]
     multyResearchesCountLeft = [0]
     notifications: list[Text] = []
+    inkExhausted = [False]
+    cellsKnownBeforePlacing = [set()]
 
     cellsObjects: list[Image | Circle] = []
 
@@ -72,10 +76,22 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.safeRepaint()
         renderDelay()
         (existingAspects[0], noneHexagons[0], freeHexagons[0]) = TI.getExistingAspectsOnField()
+        inkExhausted[0] = isInkExhaustedByField(noneHexagons[0], INK_EXHAUSTED_MARKER_CELLS)
+        if inkExhausted[0]:
+            logging.critical(f"Ink exhausted: marker cell of {sorted(INK_EXHAUSTED_MARKER_CELLS)} "
+                             f"is not detected on the field")
         logging.debug(f'Aspects on field detected')
 
     def updateSolving(interruptingFlag: list[bool] = [False]) -> None:
         logging.debug(f'Starts updating solve...')
+
+        if inkExhausted[0]:
+            # Чернила кончились: выкладывание отключено, решение не генерируем,
+            # показываем поле таким, каким его увидело определение
+            logging.critical("Ink exhausted: solving is disabled")
+            currentLinkMap[0] = existingAspects[0]
+            updateCellsImage()
+            return
 
         # Start solving
         solving = None
@@ -291,6 +307,15 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         updateDetectingField()
         updateSolving()
         logging.info("Everything prepared to next detecting")
+        if inkExhausted[0]:
+            # Чернильница пуста: выкладывание отключено, авто-режим останавливаем,
+            # следующие записки из инвентаря не достаём
+            logging.critical("Ink exhausted: automatic mode stopped")
+            multyResearchesCountLeft[0] = 0
+            updateCellsImage()
+            switchToActiveState()
+            showNotification(inkNotification)
+            return
         if multyResearchesCountLeft[0] > 0:
             multyResearchesCountLeft[0] -= 1
             startPuttingLinkMap()
@@ -299,6 +324,11 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         switchToActiveState()
 
     def startPuttingLinkMap() -> None:
+        if inkExhausted[0]:
+            # Чернильница пуста: выкладывание отключено, пока пользователь не пополнит чернила
+            logging.critical("Ink exhausted: placing is disabled")
+            showNotification(inkNotification)
+            return
         UI.safeSetAllObjectsVisibility(False)
 
         onProcessText = Text(
@@ -318,22 +348,72 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         for aspectCoords in existingAspects[0].keys():
             del finalLinkMap[aspectCoords]
 
-        def onPuttingAborted() -> None:
-            # Аспект нельзя ни взять, ни скрафтить: часть решения могла остаться на поле.
+        # Клетки, которые до выкладывания уже были свободными или занятыми аспектами:
+        # по ним отслеживается исчерпание чернильницы посреди выкладывания
+        cellsKnownBeforePlacing[0] = set(existingAspects[0]) | set(freeHexagons[0])
+        placedAspectsCount = [0]
+
+        def checkInkDuringPlacing() -> bool:
+            """Проверяет поле каждые INK_CHECK_EVERY_N_PLACED_ASPECTS выложенных аспектов.
+
+            Если маркерная клетка, которая до выкладывания была свободной или занятой аспектом,
+            перестала определяться (стала none) — чернила кончились: игра перестала принимать
+            аспекты, и выкладывание надо прервать, а не доводить до конца вслепую.
+            """
+            if not INK_EXHAUSTED_MARKER_CELLS:
+                return True  # отслеживание выключено: лишние скриншоты поля не делаем
+
+            placedAspectsCount[0] += 1
+            if placedAspectsCount[0] % INK_CHECK_EVERY_N_PLACED_ASPECTS != 0:
+                return True
+
+            # Скрываем сообщение о процессе: его фон попал бы на скриншот поля
+            UI.safeSetObjectsVisibility([onProcessText], False)
+            UI.safeRepaint()
+            renderDelay()
+            try:
+                (detectedAspects, detectedNoneHexagons,
+                 detectedFreeHexagons) = TI.getExistingAspectsOnField()
+            except Exception as error:
+                # Не роняем поток выкладывания из-за ошибки определения: работаем как раньше
+                logging.critical(f"Ink check failed, placing continues: {error}")
+                UI.safeSetObjectsVisibility([onProcessText], True)
+                return True
+            UI.safeSetObjectsVisibility([onProcessText], True)
+
+            if markerCellsBecameNone(INK_EXHAUSTED_MARKER_CELLS, cellsKnownBeforePlacing[0],
+                                     detectedNoneHexagons):
+                logging.critical("Ink exhausted: marker cell became none while placing aspects")
+                inkExhausted[0] = True
+                return False
+
+            existingAspects[0] = detectedAspects
+            noneHexagons[0] = detectedNoneHexagons
+            freeHexagons[0] = detectedFreeHexagons
+            cellsKnownBeforePlacing[0] = set(detectedAspects) | set(detectedFreeHexagons)
+            return True
+
+        def abortPlacing(notification: Text) -> None:
             # Не забираем бумагу и не идём к следующему исследованию, а показываем текущее
-            # состояние поля, чтобы пользователь пополнил инвентарь аспектов и выложил заново.
-            logging.critical("Putting aspects aborted: not enough aspects in inventory")
+            # состояние поля, чтобы пользователь пополнил запасы и выложил решение заново.
             multyResearchesCountLeft[0] = 0
             UI.safeRemoveObject(onProcessText)
             updateDetectingField()
             updateSolving()
             switchToActiveState()
-            showNotification(abortedNotification)
+            showNotification(notification)
+
+        def onPuttingAborted(inkWasExhausted: bool = False) -> None:
+            if inkWasExhausted:
+                logging.critical("Putting aspects aborted: ink exhausted")
+            else:
+                logging.critical("Putting aspects aborted: not enough aspects in inventory")
+            abortPlacing(inkNotification if inkWasExhausted else abortedNotification)
 
         def startPuttingAspects() -> None:
             logging.info("Putting aspects started...")
-            if not TI.fillByLinkMap(finalLinkMap):
-                onPuttingAborted()
+            if not TI.fillByLinkMap(finalLinkMap, checkInkDuringPlacing):
+                onPuttingAborted(inkExhausted[0])
                 return
             logging.info("Putting aspects done")
             TI.takeOutPaper()
@@ -395,6 +475,11 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     abortedNotification = createNotification(
         UI,
         AppState.translatedTexts[TEXTS.solvingPlacingAborted],
+        backgroundColor=NOTIFICATION_BACKGROUND_ERROR,
+    )
+    inkNotification = createNotification(
+        UI,
+        AppState.translatedTexts[TEXTS.solvingInkExhausted],
         backgroundColor=NOTIFICATION_BACKGROUND_ERROR,
     )
 

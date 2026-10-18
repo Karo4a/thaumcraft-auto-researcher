@@ -81,6 +81,14 @@ LINK_GENERATION_MAX_TIME_MS: int = 1000 * 10  # 10 sec
 # How long the message about aborted solving placing stays on the screen
 SOLVING_ABORTED_TEXT_TIME_MS: int = 1000 * 20  # 20 sec
 
+# ------------------------
+# Inkwell (чернильница) tracking
+# Клетки поля, которые игра перекрывает, когда в чернильнице закончились чернила.
+# Пустой набор выключает отслеживание: решение работает как раньше.
+INK_EXHAUSTED_MARKER_CELLS: set[tuple[int, int]] = set()
+# Как часто перепроверять поле во время выкладывания: каждые N выложенных аспектов
+INK_CHECK_EVERY_N_PLACED_ASPECTS: int = 3
+
 # Loggers
 MAX_LOG_FILE_SIZE_BYTES: int = 1024 * 1024 * 5  # 5 Mb
 MAX_LOG_FILES_COUNT: int = 20

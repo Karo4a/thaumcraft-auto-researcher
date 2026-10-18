@@ -429,11 +429,15 @@ class ThaumInteractor:
         aspect1.count -= mixingTimes
         aspect2.count -= mixingTimes
 
-    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]) -> bool:
+    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str],
+                      onAspectPlaced: Callable[[], bool] | None = None) -> bool:
         """
         Выкладывает решение по карте аспектов. Возвращает True всегда: базовая (vanilla) версия
         не умеет определять, что аспект невозможно взять (mixAspect ничего не возвращает).
         GTNH-версия возвращает False и прерывает выкладывание, если аспект взять нельзя.
+        onAspectPlaced — необязательная проверка после каждого выложенного аспекта (возвращает False,
+        если выкладывание надо прервать). Базовая версия её не вызывает: vanilla-издание не
+        отслеживает состояние чернильницы.
         """
         logging.info(f"Filling aspects by link map: {aspectsMap}")
 
