@@ -325,6 +325,13 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
 
     def startPuttingLinkMap() -> None:
         if inkExhausted[0]:
+            # Пользователь мог уже пополнить чернильницу: переопределяем поле и решаем заново,
+            # чтобы кнопка «Выложить решение» работала без дополнительных действий
+            logging.info("Ink was exhausted: re-detecting the field before placing")
+            updateDetectingField()
+            updateSolving()
+            switchToActiveState()
+        if inkExhausted[0]:
             # Чернильница пуста: выкладывание отключено, пока пользователь не пополнит чернила
             logging.critical("Ink exhausted: placing is disabled")
             showNotification(inkNotification)

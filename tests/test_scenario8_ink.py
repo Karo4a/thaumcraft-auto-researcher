@@ -257,6 +257,16 @@ class Scenario8InkExhaustionTest(unittest.TestCase):
         self.assertIn(INK_TEXT_KEY, self.shownTexts(UI))
         self.assertNotIn(ABORTED_TEXT_KEY, self.shownTexts(UI))
 
+    def test_placing_resumes_after_the_ink_is_refilled(self):
+        # Пользователь пополнил чернильницу: перед отказом поле определяется заново,
+        # поэтому кнопка «Выложить решение» снова работает
+        scenario.INK_EXHAUSTED_MARKER_CELLS = {(0, 0)}
+        ti = FakeTI([fieldWithoutInk({(0, 0)}), fieldWithoutInk(set())], SOLVE)
+        UI = self.runScenario(ti)
+        self.assertEqual(sorted(ti.placed), sorted(SOLVE))
+        self.assertEqual(ti.papersTakenOut, 1)
+        self.assertNotIn(INK_TEXT_KEY, self.shownTexts(UI))
+
     def test_placing_is_not_interrupted_when_tracking_is_disabled(self):
         scenario.INK_EXHAUSTED_MARKER_CELLS = set()
         ti = FakeTI([fieldWithoutInk(set()), fieldWithoutInk({(0, 0)})], SOLVE)
