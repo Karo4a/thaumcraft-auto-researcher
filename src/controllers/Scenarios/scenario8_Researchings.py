@@ -15,13 +15,13 @@ from configs.translations import TEXTS
 from controllers.Aspect import Aspect
 from controllers.ThaumInteractor import ThaumInteractor
 from controllers import Scenarios
-from controllers.Scenarios.shared import createButtonsAndText, createNotification, NOTIFICATION_BACKGROUND_ERROR
+from controllers.Scenarios.shared import createButtonsAndText, createNotification, NOTIFICATION_BACKGROUND_ERROR, \
+    NotificationManager
 from logic.LinksGeneration import generateLinkMap
 from logic.InkDetection import collectFieldMarkers, isInkExhausted, markersLostSince
 from configs.constants import MARGIN, LINK_GENERATION_MAX_TIME_MS, MAX_SOLVE_RETRIES, THAUM_HEXAGONS_SLOTS_COUNT, \
-    DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL, SOLVING_ABORTED_TEXT_TIME_MS, \
-    INK_EXHAUSTED_MARKER_CELLS, INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT, INK_EXHAUSTED_MARKER_CELLS_MIN_SHARE, \
-    INK_CHECK_EVERY_N_PLACED_ASPECTS
+    DONATE_URL_RUSSIA, DONATE_CRYPTO_ID_GLOBAL, INK_EXHAUSTED_MARKER_CELLS, INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT, \
+    INK_EXHAUSTED_MARKER_CELLS_MIN_SHARE, INK_CHECK_EVERY_N_PLACED_ASPECTS
 from utils.utils import renderDelay, eventsDelay
 
 
@@ -61,7 +61,6 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     freeHexagons = [set()]
     noneHexagons = [set()]
     multyResearchesCountLeft = [0]
-    notifications: list[Text] = []
     inkExhausted = [False]
     cellsKnownBeforePlacing = [set()]
 
@@ -318,7 +317,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
             multyResearchesCountLeft[0] = 0
             updateCellsImage()
             switchToActiveState()
-            showNotification(inkNotification)
+            notificationsManager.show(inkNotification)
             return
         if multyResearchesCountLeft[0] > 0:
             multyResearchesCountLeft[0] -= 1
@@ -338,8 +337,11 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         if inkExhausted[0]:
             # Чернильница пуста: выкладывание отключено, пока пользователь не пополнит чернила
             logging.critical("Ink exhausted: placing is disabled")
-            showNotification(inkNotification)
+            notificationsManager.show(inkNotification)
             return
+        # Пользователь запустил выкладывание: показанное сообщение он уже прочитал,
+        # а экран должен быть чистым для скриншотов поля
+        notificationsManager.hide()
         UI.safeSetAllObjectsVisibility(False)
 
         onProcessText = Text(
@@ -415,7 +417,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
             updateDetectingField()
             updateSolving()
             switchToActiveState()
-            showNotification(notification)
+            notificationsManager.show(notification)
 
         def onPuttingAborted(inkWasExhausted: bool = False) -> None:
             if inkWasExhausted:
@@ -486,6 +488,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     )
 
     # --- Notifications (правый нижний угол, отдельная палитра, не переключаются со состояниями)
+    notificationsManager = NotificationManager(UI)
     abortedNotification = createNotification(
         UI,
         AppState.translatedTexts[TEXTS.solvingPlacingAborted],
@@ -496,15 +499,6 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         AppState.translatedTexts[TEXTS.solvingInkExhausted],
         backgroundColor=NOTIFICATION_BACKGROUND_ERROR,
     )
-
-    def showNotification(notification: Text) -> None:
-        """Показывает одно уведомление вместо предыдущих и убирает его через SOLVING_ABORTED_TEXT_TIME_MS."""
-        for previousNotification in notifications:
-            UI.safeRemoveObject(previousNotification)
-        notifications.clear()
-        notifications.append(notification)
-        UI.safeAddObject(notification)
-        UI.setTimeout(SOLVING_ABORTED_TEXT_TIME_MS, UI.safeRemoveObject, [notification])
 
     # --- Multy researches state elements
     def onClickBack() -> None:
@@ -565,6 +559,8 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
     pausedStateDialogueObjects = [onPausedText]
 
     # --- Switch between states functions
+    # Уведомления не переключаются вместе с состояниями: любое переключение гасит все объекты
+    # сцены (setAllObjectsVisibility(False)), поэтому показанные уведомления возвращаются в конце
     def switchToActiveState() -> None:
         logging.info("Switching to active state")
         UI.clearKeyCallbacks()
@@ -573,6 +569,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.setObjectsVisibility(activeStateDialogueObjects, True)
         UI.setObjectsVisibility(cellsObjects, True)
         exitButtonObject.setVisibility(True)
+        notificationsManager.restore()
 
     def switchToPausedState() -> None:
         logging.info("Switching to paused state")
@@ -580,6 +577,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.setKeyCallback([KeyboardKeys.ctrl, KeyboardKeys.shift, KeyboardKeys.space], switchToActiveState)
         UI.setAllObjectsVisibility(False)
         UI.setObjectsVisibility(pausedStateDialogueObjects, True)
+        notificationsManager.restore()
 
     def switchToCellSettingsState() -> None:
         logging.info("Switching to cell settings state")
@@ -591,6 +589,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.setObjectsVisibility(cellSettingsStateDialogueObjects, True)
         UI.setObjectsVisibility(cellsObjects, True)
         exitButtonObject.setVisibility(True)
+        notificationsManager.restore()
 
     def switchToMultyResearchesState() -> None:
         logging.info("Switching to multy researches state")
@@ -599,6 +598,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.setAllObjectsVisibility(False)
         UI.setObjectsVisibility(multyResearchesObjects, True)
         exitButtonObject.setVisibility(True)
+        notificationsManager.restore()
 
     def switchToDonateState() -> None:
         logging.info("Switching to donate state")
@@ -607,6 +607,7 @@ def runResearching(UI: OverlayUI, TI: ThaumInteractor) -> None:
         UI.setAllObjectsVisibility(False)
         UI.setObjectsVisibility(donateObjects, True)
         exitButtonObject.setVisibility(True)
+        notificationsManager.restore()
 
     updateDetectingField()
     updateSolving()

@@ -3,11 +3,11 @@ from typing import Callable, Any
 from PyQt5.QtGui import QColor
 
 from UI.OverlayUI import OverlayUI, KeyboardKeys
-from UI.primitives import Text
+from UI.primitives import Text, UIPrimitive
 from configs.translations import TEXTS
 from utils import AppState
 from utils.LinkableValue import LinkableCoord, editLinkableValue
-from configs.constants import MARGIN
+from configs.constants import MARGIN, NOTIFICATION_DISPLAY_TIME_MS
 
 
 PointTextAnchor: LinkableCoord = LinkableCoord(MARGIN, MARGIN)
@@ -138,3 +138,48 @@ def createNotification(
     )
     placeNotification(notification, UI.w, UI.h, margin)
     return notification
+
+
+class NotificationManager:
+    """Показывает уведомления сценария поверх любого его состояния.
+
+    Уведомление — не диалог: любое переключение состояния сценария гасит все объекты
+    (UI.setAllObjectsVisibility(False)), поэтому после каждого такого переключения менеджер
+    нужно просить вернуть видимость его уведомлений (restore). Снятие привязано к номеру
+    показа: таймер прошлого показа не может снять уведомление, показанное заново, а hide()
+    (пользователь уже прочитал сообщение) делает висящие таймеры безвредными.
+    """
+
+    def __init__(self, UI: OverlayUI) -> None:
+        self.UI = UI
+        self.notifications: list[UIPrimitive] = []  # показанные сейчас, в порядке добавления в UI
+        self.showNumber: int = 0  # номер текущего показа: по нему таймеры понимают, что устарели
+
+    def show(self, notification: Text) -> None:
+        """Показывает одно уведомление вместо предыдущих и убирает его через NOTIFICATION_DISPLAY_TIME_MS."""
+        self.hide()
+        self.showNumber += 1
+        self.notifications.append(notification)
+        # addObject не возвращает видимость: объект мог быть погашен переключением состояния
+        self.UI.safeAddObject(notification)
+        notification.setVisibility(True)
+        self.UI.setTimeout(NOTIFICATION_DISPLAY_TIME_MS, self._hideIfShown, [notification, self.showNumber])
+
+    def hide(self) -> None:
+        """Убирает показанные уведомления, не дожидаясь их таймера."""
+        for notification in self.notifications:
+            self.UI.safeRemoveObject(notification)
+        self.notifications.clear()
+        self.showNumber += 1
+
+    def restore(self) -> None:
+        """Возвращает видимость показанных уведомлений после гашения сцены (переключение состояния)."""
+        self.UI.setObjectsVisibility(self.notifications, True)
+
+    def _hideIfShown(self, notification: Text, showNumber: int) -> None:
+        """Таймер снятия: срабатывает, только если уведомление всё ещё относится к актуальному показу."""
+        if showNumber != self.showNumber:
+            return
+        if notification in self.notifications:
+            self.notifications.remove(notification)
+        self.UI.safeRemoveObject(notification)

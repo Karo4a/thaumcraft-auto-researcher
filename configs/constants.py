@@ -78,8 +78,8 @@ IMAGE_TMP_PATH: str = to_appdata_path('.tmp/tmp.png')
 LOG_FILE_PATH: str = to_appdata_path('logs/logs.log')
 LINK_GENERATION_MAX_TIME_MS: int = 1000 * 10  # 10 sec
 
-# How long the message about aborted solving placing stays on the screen
-SOLVING_ABORTED_TEXT_TIME_MS: int = 1000 * 20  # 20 sec
+# How long a scenario notification stays on the screen (each show restarts the countdown)
+NOTIFICATION_DISPLAY_TIME_MS: int = 1000 * 10  # 10 sec
 
 # ------------------------
 # Inkwell (чернильница) tracking
