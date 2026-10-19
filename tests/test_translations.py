@@ -43,6 +43,12 @@ class TranslationsTest(unittest.TestCase):
             self.assertNotEqual(texts[TEXTS.solvingPlacingAborted], TEXTS.solvingPlacingAborted,
                                 f"{language} did not translate {TEXTS.solvingPlacingAborted}")
 
+    def test_solving_ink_exhausted_text_is_translated(self):
+        for language, texts in TRANSLATIONS.items():
+            self.assertTrue(texts[TEXTS.solvingInkExhausted], f"{language} has empty {TEXTS.solvingInkExhausted}")
+            self.assertNotEqual(texts[TEXTS.solvingInkExhausted], TEXTS.solvingInkExhausted,
+                                f"{language} did not translate {TEXTS.solvingInkExhausted}")
+
 
 if __name__ == "__main__":
     unittest.main()

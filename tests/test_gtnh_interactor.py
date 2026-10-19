@@ -190,6 +190,34 @@ class GtnhInteractorMixTest(unittest.TestCase):
         self.assertEqual(aspects["vacuos"].count, 1)
         self.assertEqual(aspects["aer"].count, 3)
 
+    def test_fill_by_link_map_calls_placed_callback_for_every_aspect(self):
+        ti = makeInteractor()
+        ti.makeAspects()
+        calls = []
+
+        def onPlaced():
+            calls.append(1)
+            return True
+
+        self.assertTrue(ti.fillByLinkMap({(-1, 0): "vacuos", (0, 0): "potentia"}, onPlaced))
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(sorted(ti.placed), [(-1, 0), (0, 0)])
+
+    def test_fill_by_link_map_aborts_when_placed_callback_stops_it(self):
+        # Проверка чернильницы после каждого выложенного аспекта: False прерывает выкладывание
+        ti = makeInteractor()
+        ti.makeAspects()
+        calls = []
+
+        def onPlaced():
+            calls.append(1)
+            return len(calls) < 2
+
+        self.assertFalse(ti.fillByLinkMap(
+            {(-1, 0): "vacuos", (0, 0): "potentia", (1, 0): "praecantatio"}, onPlaced))
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(ti.placed), 2)  # после False кликов больше нет
+
     def test_update_available_aspects_finishes_once(self):
         from types import SimpleNamespace
         ti = makeInteractor()

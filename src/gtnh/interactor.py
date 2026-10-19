@@ -227,10 +227,13 @@ class GtnhThaumInteractor(ThaumInteractor):
                 simulatedCounts[ingredientName] -= need
         return True
 
-    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str]) -> bool:
+    def fillByLinkMap(self, aspectsMap: dict[tuple[int, int], str],
+                      onAspectPlaced: Callable[[], bool] | None = None) -> bool:
         """
         Выкладывает решение на поле. Возвращает False, если аспект невозможно взять:
         выкладывание прекращается, чтобы не оставить поле в некорректном состоянии.
+        onAspectPlaced вызывается после каждого выложенного аспекта и тоже может прервать
+        выкладывание (False): так отслеживается исчерпание чернильницы посреди работы.
         """
         logging.info(f"Filling aspects by link map: {aspectsMap}")
 
@@ -249,6 +252,10 @@ class GtnhThaumInteractor(ThaumInteractor):
             self.putAspect(*coords)
             eventsDelay()
             logging.info(f"Placed {aspect.name}(uid={aspect.uid}) into cell {coords}, left: {aspect.count}")
+            if onAspectPlaced is not None and not onAspectPlaced():
+                logging.critical(f"Placing aspects interrupted after {placedCount + 1} of "
+                                 f"{len(aspectsListMap)} aspects. Putting aspects aborted")
+                return False
         return True
 
     def updateAvailableAspectsInInventory(self, onFinishCallback: Callable, callbackArgs: list[Any] = []) -> None:

@@ -47,6 +47,15 @@ class VanillaFillByLinkMapTest(unittest.TestCase):
         self.assertEqual(ti.taken, [])
         self.assertEqual(ti.placed, [])
 
+    def test_ignores_placed_aspect_callback(self):
+        # vanilla-издание не отслеживает чернильницу: колбэк принимается, но не вызывается
+        ti = makeInteractor(["vacuos", "potentia"])
+        calls = []
+        self.assertTrue(ti.fillByLinkMap({(-1, 0): "vacuos", (0, 0): "potentia"},
+                                         lambda: calls.append(1) or False))
+        self.assertEqual(calls, [])
+        self.assertEqual(sorted(ti.placed), [(-1, 0), (0, 0)])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -18,6 +18,7 @@ class TEXTS:
     aspectChanging: ClassVar[str] = "aspectChanging"
     waitForSolvingPlacing: ClassVar[str] = "waitForSolvingPlacing"
     solvingPlacingAborted: ClassVar[str] = "solvingPlacingAborted"
+    solvingInkExhausted: ClassVar[str] = "solvingInkExhausted"
     solvingCreated: ClassVar[str] = "solvingCreated"
     programPaused: ClassVar[str] = "programPaused"
     startAutomaticMode: ClassVar[str] = "startAutomaticMode"
@@ -110,6 +111,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 Для экстренного закрытия программы нажмите [Ctrl + Shift + Alt]""",
         TEXTS.solvingPlacingAborted: """Выкладывание решения прервано: нужного аспекта нет в инвентаре и его нельзя скрафтить.
 Пополните запас аспектов и нажмите «Выложить решение» снова.""",
+
+        TEXTS.solvingInkExhausted: """В чернильнице закончились чернила: выкладывание решения отключено.
+Пополните чернильницу и нажмите «Выложить решение» снова.""",
 
         TEXTS.solvingCreated: """Нейросеть определила аспекты на поле.
 Если аспекты определены неверно, можно кликнуть на ячейку 
@@ -218,6 +222,9 @@ For emergency program termination, press [Ctrl + Shift + Alt]""",
         TEXTS.solvingPlacingAborted: """Placing the solution was aborted: a required aspect is missing from the inventory and cannot be crafted.
 Refill your aspects and press "Place solving" again.""",
 
+        TEXTS.solvingInkExhausted: """The inkwell is out of ink: placing the solution is disabled.
+Refill the inkwell and press "Place solution" again.""",
+
         TEXTS.solvingCreated: """The neural network has detected aspects on the field.
 If aspects are detected incorrectly, you can click on a cell 
 and choose what should actually be there.
@@ -324,6 +331,9 @@ Non muovere il mouse o premere alcun pulsante!
 Per la chiusura di emergenza del programma, premi [Ctrl + Shift + Alt]""",
         TEXTS.solvingPlacingAborted: """Il posizionamento della soluzione è stato interrotto: un aspetto necessario manca nell'inventario e non può essere creato.
 Rifornisci gli aspetti e premi di nuovo «Posiziona soluzione».""",
+
+        TEXTS.solvingInkExhausted: """Il calamaio è vuoto: il posizionamento della soluzione è disattivato.
+Rifornisci il calamaio e premi di nuovo «Posiziona soluzione».""",
 
         TEXTS.solvingCreated: """La rete neurale ha rilevato gli aspetti sul campo.
 Se gli aspetti sono rilevati in modo errato, puoi fare clic su una cella 
@@ -432,6 +442,9 @@ Voor noodafsluiting van het programma, druk op [Ctrl + Shift + Alt]""",
         TEXTS.solvingPlacingAborted: """Het plaatsen van de oplossing is afgebroken: een vereist aspect ontbreekt in de inventaris en kan niet gemaakt worden.
 Vul je aspecten aan en druk opnieuw op "Oplossing plaatsen".""",
 
+        TEXTS.solvingInkExhausted: """De inktpot is leeg: het plaatsen van de oplossing is uitgeschakeld.
+Vul de inktpot bij en druk opnieuw op "Oplossing plaatsen".""",
+
         TEXTS.solvingCreated: """Het neurale netwerk heeft aspecten op het veld gedetecteerd.
 Als aspecten onjuist zijn gedetecteerd, kunt u op een cel klikken 
 en kiezen wat er werkelijk zou moeten zijn.
@@ -538,6 +551,9 @@ Para cambiar su cantidad, usa las teclas numéricas [0-9] y [Retroceso]""",
 Para la terminación de emergencia del programa, presiona [Ctrl + Shift + Alt]""",
         TEXTS.solvingPlacingAborted: """Se interrumpió la colocación de la solución: falta un aspecto necesario en el inventario y no se puede crear.
 Repón los aspectos y pulsa «Colocar solución» de nuevo.""",
+
+        TEXTS.solvingInkExhausted: """El tintero se ha quedado sin tinta: colocar la solución está desactivado.
+Rellena el tintero y pulsa «Colocar solución» de nuevo.""",
 
         TEXTS.solvingCreated: """La red neuronal ha detectado aspectos en el campo.
 Si los aspectos se detectan incorrectamente, puedes hacer clic en una celda 
@@ -646,6 +662,9 @@ Si eres cliente de un banco ruso - elige el segundo botón. Abrirá un enlace a 
         TEXTS.solvingPlacingAborted: """تم إيقاف وضع الحل: أحد الجوانب المطلوبة غير موجود في المخزون ولا يمكن تصنيعه.
 أعد تعبئة الجوانب ثم اضغط على «وضع الحل» مرة أخرى.""",
 
+        TEXTS.solvingInkExhausted: """نفد الحبر من المحبرة: تم تعطيل وضع الحل.
+أعد تعبئة المحبرة ثم اضغط على «وضع الحل» مرة أخرى.""",
+
         TEXTS.solvingCreated: """اكتشفت الشبكة العصبية الجوانب في الحقل.
 إذا تم اكتشاف الجوانب بشكل غير صحيح، يمكنك النقر على خلية 
 واختيار ما يجب أن يكون هناك بالفعل.
@@ -752,6 +771,9 @@ Si eres cliente de un banco ruso - elige el segundo botón. Abrirá un enlace a 
         TEXTS.solvingPlacingAborted: """放置解決方案已中止：物品欄中缺少所需的要素，且無法合成。
 請補充要素後再次按下「放置解決方案」。""",
 
+        TEXTS.solvingInkExhausted: """墨水池已無墨水：放置解決方案已停用。
+請補充墨水，然後再次按下「放置解決方案」。""",
+
         TEXTS.solvingCreated: """神經網路已檢測到場上的要素。
 如果要素檢測不正確，您可以點擊單元格
 並選擇實際應有的內容。
@@ -857,6 +879,9 @@ Si eres cliente de un banco ruso - elige el segundo botón. Abrirá un enlace a 
 如需紧急终止程序，请按 [Ctrl + Shift + Alt]""",
         TEXTS.solvingPlacingAborted: """放置解决方案已中止：物品栏中缺少所需的要素，且无法合成。
 请补充要素后再次按下“放置解决方案”。""",
+
+        TEXTS.solvingInkExhausted: """墨水池已无墨水：放置解决方案已停用。
+请补充墨水，然后再次按下“放置解决方案”。""",
 
         TEXTS.solvingCreated: """神经网络已检测到场上的要素。
 如果要素检测不正确，您可以点击单元格
@@ -965,6 +990,9 @@ Pour l'arrêt d'urgence du programme, appuyez sur [Ctrl + Shift + Alt]""",
         TEXTS.solvingPlacingAborted: """Le placement de la solution a été interrompu : un aspect requis manque dans l'inventaire et ne peut pas être fabriqué.
 Rechargez vos aspects et appuyez de nouveau sur « Placer la solution ».""",
 
+        TEXTS.solvingInkExhausted: """L'encrier est vide : le placement de la solution est désactivé.
+Rechargez l'encrier et appuyez de nouveau sur « Placer la solution ».""",
+
         TEXTS.solvingCreated: """Le réseau neuronal a détecté les aspects sur le terrain.
 Si les aspects sont mal détectés, vous pouvez cliquer sur une cellule 
 et choisir ce qui devrait réellement s'y trouver.
@@ -1072,6 +1100,9 @@ Si vous êtes client d'une banque russe - choisissez le deuxième bouton. Il ouv
         TEXTS.solvingPlacingAborted: """समाधान रखना बंद कर दिया गया: इन्वेंट्री में आवश्यक पहलू नहीं है और उसे बनाया नहीं जा सकता।
 पहलू भरें और फिर से «समाधान रखें» दबाएँ।""",
 
+        TEXTS.solvingInkExhausted: """दवात में स्याही खत्म हो गई: समाधान रखना बंद कर दिया गया है।
+दवात में स्याही भरें और फिर से "समाधान रखें" दबाएँ।""",
+
         TEXTS.solvingCreated: """न्यूरल नेटवर्क ने क्षेत्र में पहलुओं का पता लगा लिया है।
 यदि पहलुओं का गलत पता लगाया गया है, तो आप सेल पर क्लिक कर सकते हैं 
 और चुन सकते हैं कि वास्तव में वहाँ क्या होना चाहिए।
@@ -1178,6 +1209,9 @@ Si vous êtes client d'une banque russe - choisissez le deuxième bouton. Il ouv
 비상 프로그램 종료는 [Ctrl + Shift + Alt]를 누르세요""",
         TEXTS.solvingPlacingAborted: """해결책 배치가 중단되었습니다: 인벤토리에 필요한 요소가 없고 제작할 수도 없습니다.
 요소를 보충한 뒤 «해결책 배치»를 다시 누르세요.""",
+
+        TEXTS.solvingInkExhausted: """잉크병에 잉크가 없습니다: 해결책 배치가 비활성화되었습니다.
+잉크를 채우고 다시 "해결책 배치"를 누르세요.""",
 
         TEXTS.solvingCreated: """신경망이 필드의 요소를 감지했습니다.
 요소가 잘못 감지된 경우, 셀을 클릭하여 
