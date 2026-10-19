@@ -215,6 +215,14 @@ def fieldDetection(inkExhausted=False, lostBandCells=frozenset()):
     return dict(aspects), noneHexagons, freeHexagons
 
 
+def fieldSolved():
+    """Поле после решения исследования: пазла нет, свободных шестиугольников нет нигде.
+
+    Радиус при этом может быть раздут случайными предсказаниями сети на пустом поле.
+    """
+    return {}, hexagonShape(4), set()
+
+
 SOLVE = {ASPECT_CELL: "aer", (1, -1): "vacuos", (2, -1): "aer", (1, 2): "ignis", (2, 1): "terra"}
 # Что реально должно быть выложено: решение без аспектов, уже стоящих на поле
 PLANNED_CELLS = sorted(set(SOLVE) - {ASPECT_CELL})
@@ -262,6 +270,18 @@ class Scenario8InkExhaustionTest(unittest.TestCase):
         self.assertEqual(ti.placed, [])
         self.assertEqual(ti.papersTakenOut, 0)
         self.assertIn(INK_TEXT_KEY, self.shownTexts(UI))
+
+    def test_placing_completes_when_the_puzzle_is_solved_mid_run(self):
+        # Регресс: последний выложенный аспект решает исследование, поле становится пустым,
+        # и проверка чернильницы уже не должна принимать это за исчерпание — иначе
+        # выкладывание прерывается и свиток остаётся в столе
+        scenario.INK_CHECK_EVERY_N_PLACED_ASPECTS = 1
+        ti = FakeTI([fieldDetection(), fieldSolved()], SOLVE)
+        UI = self.runScenario(ti)
+        self.assertEqual(sorted(ti.placed), PLANNED_CELLS)
+        self.assertEqual(ti.papersTakenOut, 1)
+        self.assertEqual(ti.workingSlotIncreases, 1)
+        self.assertNotIn(INK_TEXT_KEY, self.shownTexts(UI))
 
     def test_placing_is_aborted_when_the_inkwell_empties_mid_run(self):
         scenario.INK_CHECK_EVERY_N_PLACED_ASPECTS = 3

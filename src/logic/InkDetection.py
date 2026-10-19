@@ -1,5 +1,5 @@
 from configs.constants import (INK_EXHAUSTED_MARKER_CELLS, INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT,
-                               INK_EXHAUSTED_MARKER_CELLS_MIN_SHARE)
+                               INK_EXHAUSTED_MARKER_CELLS_MIN_SHARE, INK_EXHAUSTED_MIN_FREE_OUTSIDE_BAND)
 
 HexagonsCells = set[tuple[int, int]]
 
@@ -20,14 +20,17 @@ class FieldMarkers:
     present — маркерные клетки, которые вообще есть на этом поле,
     lost — из них те, что не опознаны ни как свободный шестиугольник, ни как аспект,
     visibleAspects — из них те, где стоит распознанный аспект: его иконка видна даже под
-    плашкой "You have run out of ink!", поэтому потеря в такой клетке не наблюдаема.
+    плашкой "You have run out of ink!", поэтому потеря в такой клетке не наблюдаема,
+    freeOutsideBand — сколько свободных шестиугольников опознано вне полосы: у решённого
+    или пустого поля их нет вовсе, а при исчерпании чернил поле вокруг полосы остаётся.
     """
 
     def __init__(self, present: HexagonsCells, lost: HexagonsCells,
-                 visibleAspects: HexagonsCells = set()) -> None:
+                 visibleAspects: HexagonsCells = set(), freeOutsideBand: int = 0) -> None:
         self.present = set(present)
         self.lost = set(lost)
         self.visibleAspects = set(visibleAspects)
+        self.freeOutsideBand = freeOutsideBand
 
     @property
     def observable(self) -> HexagonsCells:
@@ -41,7 +44,8 @@ class FieldMarkers:
 
     def __repr__(self) -> str:
         return (f"FieldMarkers(lost {len(self.lost)} of {len(self.observable)} observable "
-                f"({len(self.present)} on field) = {self.lostShare:.0%})")
+                f"({len(self.present)} on field), free outside band {self.freeOutsideBand} "
+                f"= {self.lostShare:.0%})")
 
 
 def collectFieldMarkers(aspectCells: HexagonsCells, freeHexagons: HexagonsCells,
@@ -52,12 +56,14 @@ def collectFieldMarkers(aspectCells: HexagonsCells, freeHexagons: HexagonsCells,
         present=set(markerCells) & (set(noneHexagons) | set(freeHexagons)),
         lost=set(markerCells) & undetectedHexagons(noneHexagons, aspectCells),
         visibleAspects=set(markerCells) & set(aspectCells),
+        freeOutsideBand=len(set(freeHexagons) - set(markerCells)),
     )
 
 
 def isInkExhausted(markers: FieldMarkers,
                    minCount: int = INK_EXHAUSTED_MARKER_CELLS_MIN_COUNT,
-                   minShare: float = INK_EXHAUSTED_MARKER_CELLS_MIN_SHARE) -> bool:
+                   minShare: float = INK_EXHAUSTED_MARKER_CELLS_MIN_SHARE,
+                   minFreeOutsideBand: int = INK_EXHAUSTED_MIN_FREE_OUTSIDE_BAND) -> bool:
     """Определяет исчерпание чернильницы по маркерным клеткам поля.
 
     Когда в чернильнице кончаются чернила, игра перестаёт ставить аспекты и пишет
@@ -66,9 +72,15 @@ def isInkExhausted(markers: FieldMarkers,
 
     Требуем и долю пропавших клеток, и минимальное их количество: единичные потери клеток
     бывают и в нормальном поле (промахи определения, аспекты, которых бот не знает), а при
-    исчерпании пропадает вся полоса. Пустой набор маркерных клеток выключает отслеживание.
+    исчерпании пропадает вся полоса. Плюс требуем, чтобы вне полосы ещё определялись
+    свободные шестиугольники: у решённого исследования поле пустое, и полоса в нём
+    "пропадает" так же, как при исчерпании, но это не исчерпание.
+
+    Пустой набор маркерных клеток выключает отслеживание.
     """
-    return len(markers.lost) >= minCount and markers.lostShare >= minShare
+    return (markers.freeOutsideBand >= minFreeOutsideBand
+            and len(markers.lost) >= minCount
+            and markers.lostShare >= minShare)
 
 
 def markersLostSince(knownCellsBefore: HexagonsCells, markers: FieldMarkers) -> FieldMarkers:
@@ -80,4 +92,5 @@ def markersLostSince(knownCellsBefore: HexagonsCells, markers: FieldMarkers) -> 
     надо прервать, а не доводить до конца вслепую.
     """
     return FieldMarkers(present=markers.present, lost=markers.lost & set(knownCellsBefore),
-                        visibleAspects=markers.visibleAspects)
+                        visibleAspects=markers.visibleAspects,
+                        freeOutsideBand=markers.freeOutsideBand)

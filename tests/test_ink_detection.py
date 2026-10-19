@@ -11,6 +11,8 @@ from configs.constants import (INK_EXHAUSTED_MARKER_CELLS, INK_EXHAUSTED_MARKER_
 from logic.InkDetection import (collectFieldMarkers, isInkExhausted, markersLostSince, undetectedHexagons)
 
 MARKER_CELLS = {(-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0)}
+# Свободные шестиугольники вне полосы: при исчерпании поле вокруг полосы остаётся целым
+FREE_OUTSIDE_BAND = {(-3, -1), (3, 1), (0, 2), (2, -2), (-2, 2)}
 
 
 def hexagonShape(radius):
@@ -33,12 +35,13 @@ class CollectFieldMarkersTest(unittest.TestCase):
     def test_present_and_lost_are_computed_for_marker_cells_only(self):
         # поле: (0,0) не опознана, (1,0) аспект, (-1,0) свободна, остальное вне полосы
         noneHexagons = {(0, 0), (1, 0), (2, 2)}
-        freeHexagons = {(-1, 0)}
+        freeHexagons = {(-1, 0)} | FREE_OUTSIDE_BAND
         markers = collectFieldMarkers({(1, 0)}, freeHexagons, noneHexagons, MARKER_CELLS)
         self.assertEqual(markers.present, {(-1, 0), (0, 0), (1, 0)})
         self.assertEqual(markers.lost, {(0, 0)})
         self.assertEqual(markers.visibleAspects, {(1, 0)})
         self.assertEqual(markers.observable, {(-1, 0), (0, 0)})
+        self.assertEqual(markers.freeOutsideBand, len(FREE_OUTSIDE_BAND))
         self.assertAlmostEqual(markers.lostShare, 1 / 2)
 
     def test_no_marker_cells_on_field(self):
@@ -55,30 +58,47 @@ class CollectFieldMarkersTest(unittest.TestCase):
 
 class IsInkExhaustedTest(unittest.TestCase):
     def test_exhaustion_when_the_whole_band_is_lost(self):
-        markers = collectFieldMarkers(set(), set(), MARKER_CELLS, MARKER_CELLS)
+        markers = collectFieldMarkers(set(), FREE_OUTSIDE_BAND, MARKER_CELLS, MARKER_CELLS)
         self.assertTrue(isInkExhausted(markers))
 
     def test_no_exhaustion_when_the_band_is_detected(self):
-        markers = collectFieldMarkers(set(), MARKER_CELLS, set(), MARKER_CELLS)
+        markers = collectFieldMarkers(set(), MARKER_CELLS | FREE_OUTSIDE_BAND, set(), MARKER_CELLS)
+        self.assertFalse(isInkExhausted(markers))
+
+    def test_solved_empty_field_is_not_exhaustion(self):
+        # После решения исследования пазла нет: полоса "пропала" целиком, но свободных
+        # шестиугольников нет и вне полосы — это не исчерпание чернил
+        noneHexagons = hexagonShape(4)  # радиус раздут случайными предсказаниями на пустом поле
+        markers = collectFieldMarkers(set(), set(), noneHexagons)
+        self.assertEqual(len(markers.lost), 7)
+        self.assertEqual(markers.lostShare, 1.0)
+        self.assertEqual(markers.freeOutsideBand, 0)
+        self.assertFalse(isInkExhausted(markers))
+
+    def test_solved_field_with_aspects_left_is_not_exhaustion(self):
+        # На решённом поле могли остаться видимыми только аспекты, свободных шестиугольников нет
+        aspects = {(0, -4): "cognitio", (0, 4): "vacuos", (-4, -2): "praecantatio"}
+        markers = collectFieldMarkers(set(aspects), set(), hexagonShape(4))
+        self.assertEqual(markers.freeOutsideBand, 0)
         self.assertFalse(isInkExhausted(markers))
 
     def test_sporadic_detection_misses_are_not_exhaustion(self):
         # В нормальном поле определение теряет 1-3 клетки: это не исчерпание чернил
         lost = {(-2, 0), (0, 0), (2, 0)}
-        markers = collectFieldMarkers(set(), MARKER_CELLS - lost, lost, MARKER_CELLS)
+        markers = collectFieldMarkers(set(), (MARKER_CELLS - lost) | FREE_OUTSIDE_BAND, lost, MARKER_CELLS)
         self.assertEqual(len(markers.lost), 3)
         self.assertFalse(isInkExhausted(markers))
 
     def test_share_alone_is_not_enough_for_a_too_small_band(self):
         # Крошечная полоса: доля максимальная, но клеток слишком мало
-        markers = collectFieldMarkers(set(), set(), {(0, 0), (1, 0)}, {(0, 0), (1, 0)})
+        markers = collectFieldMarkers(set(), FREE_OUTSIDE_BAND, {(0, 0), (1, 0)}, {(0, 0), (1, 0)})
         self.assertEqual(markers.lostShare, 1.0)
         self.assertFalse(isInkExhausted(markers))
 
     def test_smallest_field_band_triggers(self):
-        # Поле радиуса 2: маркерных клеток 7, при исчерпании пропадают все
+        # Поле радиуса 2: маркерных клеток 7, при исчерпании пропадают все, поле вокруг цело
         smallestBand = {(-2, 0), (-1, 0), (0, 0), (1, 0), (2, 0), (-1, 1), (1, 1)}
-        markers = collectFieldMarkers(set(), set(), smallestBand, smallestBand)
+        markers = collectFieldMarkers(set(), FREE_OUTSIDE_BAND, smallestBand, smallestBand)
         self.assertEqual(len(markers.lost), 7)
         self.assertTrue(isInkExhausted(markers))
 
@@ -133,17 +153,19 @@ class RealLogSamplesTest(unittest.TestCase):
         radius3Markers = collectFieldMarkers(set(INK_LOG_SAMPLES["radius3"][0]),
                                             INK_LOG_SAMPLES["radius3"][1], INK_LOG_SAMPLES["radius3"][2])
         self.assertEqual((len(radius3Markers.lost), len(radius3Markers.observable)), (7, 7))
+        self.assertGreaterEqual(radius3Markers.freeOutsideBand, 5)
         radius4Markers = collectFieldMarkers(set(INK_LOG_SAMPLES["radius4"][0]),
                                             INK_LOG_SAMPLES["radius4"][1], INK_LOG_SAMPLES["radius4"][2])
         self.assertEqual(radius4Markers.visibleAspects, {(1, 0)})
         self.assertEqual((len(radius4Markers.lost), len(radius4Markers.observable)), (6, 6))
+        self.assertGreaterEqual(radius4Markers.freeOutsideBand, 5)
 
     def test_aspects_visible_under_the_plaque_do_not_dilute_the_share(self):
         # Аспекты под плашкой остаются распознанными: они не мешают понять,
         # что все остальные клетки полосы пропали
         aspects = {(0, 0): "superbia", (1, 0): "gelum", (2, 0): "aer"}
         noneHexagons = INK_EXHAUSTED_MARKER_CELLS | set(aspects)
-        markers = collectFieldMarkers(aspects, set(), noneHexagons)
+        markers = collectFieldMarkers(aspects, FREE_OUTSIDE_BAND, noneHexagons)
         self.assertEqual((len(markers.lost), len(markers.observable)), (4, 4))
         self.assertTrue(isInkExhausted(markers))
 
@@ -175,16 +197,18 @@ class RealLogSamplesTest(unittest.TestCase):
         self.assertEqual(markers.lost, set())
         self.assertFalse(isInkExhausted(markers))
         # Вот откуда брались ложные срабатывания: со старым набором из 13 клеток
-        # шесть клеток за пределами минимального поля считались пропавшими
+        # шесть клеток за пределами минимального поля считались пропавшими,
+        # а старый порог считал только количество и срабатывал
         oldMarkerCells = INK_EXHAUSTED_MARKER_CELLS | {(-3, 0), (3, 0), (-4, 0), (4, 0), (-3, 1), (3, 1)}
         oldMarkers = collectFieldMarkers(set(), freeHexagons, noneHexagons, oldMarkerCells)
         self.assertEqual(len(oldMarkers.lost), 6)
         self.assertEqual(len(oldMarkers.present), 13)
+        self.assertTrue(isInkExhausted(oldMarkers, minCount=4, minShare=0.0))
 
     def test_lost_band_cells_of_the_minimal_field_are_below_the_threshold(self):
         # Ложное срабатывание из живого прогона: сеть не опознала часть клеток полосы
         lost = {(-2, 0), (0, 0), (2, 0)}
-        markers = collectFieldMarkers(set(), INK_EXHAUSTED_MARKER_CELLS - lost, lost)
+        markers = collectFieldMarkers(set(), (INK_EXHAUSTED_MARKER_CELLS - lost) | FREE_OUTSIDE_BAND, lost)
         self.assertEqual((len(markers.lost), len(markers.present)), (3, 7))
         self.assertFalse(isInkExhausted(markers))
 
